@@ -32,18 +32,18 @@ export class HTMLParser {
         const regAttr = /\s*([^\s"'>/=\x00-\x0F\x7F\x80-\x9F]+)(?:\s*=\s*(?:(")([^"]*)"|(')([^']*)'|([^\s"'>]*)))?/g;
         const regLine = /\r?\n/g;
 
-        let match,
-            matchIndex,
-            lastIndex = 0,
-            tagName,
-            arrAttrs,
-            tagCDATA,
-            attrsCDATA,
-            arrCDATA,
-            lastCDATAIndex = 0,
-            text;
-        let lastLineIndex = 0,
-            line = 1;
+        let match;
+        let matchIndex;
+        let lastIndex = 0;
+        let tagName;
+        let arrAttrs;
+        let tagCDATA;
+        let attrsCDATA;
+        let arrCDATA;
+        let lastCDATAIndex = 0;
+        let text;
+        let lastLineIndex = 0;
+        let line = 1;
         const arrBlocks = this._arrBlocks;
 
         //存储区块
