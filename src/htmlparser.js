@@ -46,6 +46,24 @@ export class HTMLParser {
             line = 1;
         var arrBlocks = this._arrBlocks;
 
+        //存储区块
+        var saveBlock = (type, raw, pos, data) => {
+            var col = pos - lastLineIndex + 1;
+            if (data === undefined) {
+                data = {};
+            }
+            data.raw = raw;
+            data.pos = pos;
+            data.line = line;
+            data.col = col;
+            arrBlocks.push(data);
+            this.fire(type, data);
+            while (regLine.exec(raw)) {
+                line++;
+                lastLineIndex = pos + regLine.lastIndex;
+            }
+        };
+
         this.fire('start', {
             pos: 0,
             line: 1,
@@ -156,24 +174,6 @@ export class HTMLParser {
             line: line,
             col: html.length - lastLineIndex + 1
         });
-
-        //存储区块
-        function saveBlock(type, raw, pos, data) {
-            var col = pos - lastLineIndex + 1;
-            if (data === undefined) {
-                data = {};
-            }
-            data.raw = raw;
-            data.pos = pos;
-            data.line = line;
-            data.col = col;
-            arrBlocks.push(data);
-            this.fire(type, data);
-            while ((regLine.exec(raw))) {
-                line++;
-                lastLineIndex = pos + regLine.lastIndex;
-            }
-        }
     }
 
     // add event

@@ -49,13 +49,13 @@ export class HTMLHint {
         // parse inline ruleset
         html = html.replace(
             /^\s*<!--\s*htmlhint\s+([^\r\n]+?)\s*-->/i,
-            function(all, strRuleset) {
+            (all, strRuleset) => {
                 if (ruleset === undefined) {
                     ruleset = {};
                 }
                 strRuleset.replace(
                     /(?:^|,)\s*([^:,]+)\s*(?::\s*([^,\s]+))?/g,
-                    function(all, key, value) {
+                    (all, key, value) => {
                         if (value === 'false') {
                             value = false;
                         } else if (value === 'true') {
@@ -102,7 +102,7 @@ export class HTMLHint {
             colors.reset = '\\033[39m';
         }
         var indent = options.indent || 0;
-        arrMessages.forEach(function(hint) {
+        arrMessages.forEach((hint) => {
             var leftWindow = 40;
             var rightWindow = leftWindow + 20;
             var evidence = hint.evidence;
