@@ -11,11 +11,11 @@ export const attrValueDoubleQuotes = {
     id: 'attr-value-double-quotes',
     description: 'Attribute values must be in double quotes.',
     init: function(parser, reporter) {
-        let self = this;
+        const self = this;
         parser.addListener('tagstart', function(event) {
-            let attrs = event.attrs,
-                attr,
-                col = event.col + event.tagName.length + 1;
+            const attrs = event.attrs;
+            let attr;
+            const col = event.col + event.tagName.length + 1;
             for (let i = 0, l = attrs.length; i < l; i++) {
                 attr = attrs[i];
                 if (

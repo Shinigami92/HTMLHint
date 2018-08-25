@@ -11,13 +11,13 @@ export const tagPairRule = {
     id: 'tag-pair',
     description: 'Tag must be paired.',
     init: function(parser, reporter) {
-        let self = this;
-        let stack = [],
-            mapEmptyTags = parser.makeMap(
-                'area,base,basefont,br,col,frame,hr,img,input,isindex,link,meta,param,embed,track,command,source,keygen,wbr'
-            ); //HTML 4.01 + HTML 5
+        const self = this;
+        const stack = [];
+        const mapEmptyTags = parser.makeMap(
+            'area,base,basefont,br,col,frame,hr,img,input,isindex,link,meta,param,embed,track,command,source,keygen,wbr'
+        ); //HTML 4.01 + HTML 5
         parser.addListener('tagstart', function(event) {
-            let tagName = event.tagName.toLowerCase();
+            const tagName = event.tagName.toLowerCase();
             if (mapEmptyTags[tagName] === undefined && !event.close) {
                 stack.push({
                     tagName: tagName,
@@ -27,7 +27,7 @@ export const tagPairRule = {
             }
         });
         parser.addListener('tagend', function(event) {
-            let tagName = event.tagName.toLowerCase();
+            const tagName = event.tagName.toLowerCase();
             let pos;
             //向上寻找匹配的开始标签
             for (pos = stack.length - 1; pos >= 0; pos--) {
@@ -36,12 +36,12 @@ export const tagPairRule = {
                 }
             }
             if (pos >= 0) {
-                let arrTags = [];
+                const arrTags = [];
                 for (let i = stack.length - 1; i > pos; i--) {
                     arrTags.push('</' + stack[i].tagName + '>');
                 }
                 if (arrTags.length > 0) {
-                    let lastEvent = stack[stack.length - 1];
+                    const lastEvent = stack[stack.length - 1];
                     reporter.error(
                         'Tag must be paired, missing: [ ' +
                             arrTags.join('') +
@@ -68,12 +68,12 @@ export const tagPairRule = {
             }
         });
         parser.addListener('end', function(event) {
-            let arrTags = [];
+            const arrTags = [];
             for (let i = stack.length - 1; i >= 0; i--) {
                 arrTags.push('</' + stack[i].tagName + '>');
             }
             if (arrTags.length > 0) {
-                let lastEvent = stack[stack.length - 1];
+                const lastEvent = stack[stack.length - 1];
                 reporter.error(
                     'Tag must be paired, missing: [ ' +
                         arrTags.join('') +

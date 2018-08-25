@@ -17,6 +17,7 @@
         "no-control-regex": "off",
         "no-empty": ["error", { "allowEmptyCatch": true }],
         "no-var": "error",
+        "prefer-const": "warn",
         "semi": ["error", "always"]
     },
     "globals": {

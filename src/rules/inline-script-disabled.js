@@ -11,13 +11,13 @@ export const inlineScriptDisabledRule = {
     id: 'inline-script-disabled',
     description: 'Inline script cannot be used.',
     init: function(parser, reporter) {
-        let self = this;
+        const self = this;
         parser.addListener('tagstart', function(event) {
-            let attrs = event.attrs;
+            const attrs = event.attrs;
             let attr;
-            let col = event.col + event.tagName.length + 1;
+            const col = event.col + event.tagName.length + 1;
             let attrName;
-            let reEvent = /^on(unload|message|submit|select|scroll|resize|mouseover|mouseout|mousemove|mouseleave|mouseenter|mousedown|load|keyup|keypress|keydown|focus|dblclick|click|change|blur|error)$/i;
+            const reEvent = /^on(unload|message|submit|select|scroll|resize|mouseover|mouseout|mousemove|mouseleave|mouseenter|mousedown|load|keyup|keypress|keydown|focus|dblclick|click|change|blur|error)$/i;
 
             for (let i = 0, l = attrs.length; i < l; i++) {
                 attr = attrs[i];

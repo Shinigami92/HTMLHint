@@ -12,37 +12,37 @@ export const idClassValueRule = {
     description:
         'The id and class attribute values must meet the specified rules.',
     init: function(parser, reporter, options) {
-        let self = this;
-        let arrRules = {
-                underline: {
-                    regId: /^[a-z\d]+(_[a-z\d]+)*$/,
-                    message:
-                        'The id and class attribute values must be in lowercase and split by an underscore.'
-                },
-                dash: {
-                    regId: /^[a-z\d]+(-[a-z\d]+)*$/,
-                    message:
-                        'The id and class attribute values must be in lowercase and split by a dash.'
-                },
-                hump: {
-                    regId: /^[a-z][a-zA-Z\d]*([A-Z][a-zA-Z\d]*)*$/,
-                    message:
-                        'The id and class attribute values must meet the camelCase style.'
-                }
+        const self = this;
+        const arrRules = {
+            underline: {
+                regId: /^[a-z\d]+(_[a-z\d]+)*$/,
+                message:
+                    'The id and class attribute values must be in lowercase and split by an underscore.'
             },
-            rule;
+            dash: {
+                regId: /^[a-z\d]+(-[a-z\d]+)*$/,
+                message:
+                    'The id and class attribute values must be in lowercase and split by a dash.'
+            },
+            hump: {
+                regId: /^[a-z][a-zA-Z\d]*([A-Z][a-zA-Z\d]*)*$/,
+                message:
+                    'The id and class attribute values must meet the camelCase style.'
+            }
+        };
+        let rule;
         if (typeof options === 'string') {
             rule = arrRules[options];
         } else {
             rule = options;
         }
         if (rule && rule.regId) {
-            let regId = rule.regId,
-                message = rule.message;
+            const regId = rule.regId;
+            const message = rule.message;
             parser.addListener('tagstart', function(event) {
-                let attrs = event.attrs,
-                    attr,
-                    col = event.col + event.tagName.length + 1;
+                const attrs = event.attrs;
+                let attr;
+                const col = event.col + event.tagName.length + 1;
                 for (let i = 0, l1 = attrs.length; i < l1; i++) {
                     attr = attrs[i];
                     if (attr.name.toLowerCase() === 'id') {
@@ -57,8 +57,8 @@ export const idClassValueRule = {
                         }
                     }
                     if (attr.name.toLowerCase() === 'class') {
-                        let arrClass = attr.value.split(/\s+/g),
-                            classValue;
+                        const arrClass = attr.value.split(/\s+/g);
+                        let classValue;
                         for (let j = 0, l2 = arrClass.length; j < l2; j++) {
                             classValue = arrClass[j];
                             if (

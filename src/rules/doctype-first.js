@@ -11,8 +11,8 @@ export const doctypeFirstRule = {
     id: 'doctype-first',
     description: 'Doctype must be declared first.',
     init: function(parser, reporter) {
-        let self = this;
-        let allEvent = function(event) {
+        const self = this;
+        const allEvent = function(event) {
             if (
                 event.type === 'start' ||
                 (event.type === 'text' && /^\s*$/.test(event.raw))

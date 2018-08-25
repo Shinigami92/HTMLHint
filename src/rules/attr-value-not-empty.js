@@ -11,11 +11,11 @@ export const attrValueNotEmpty = {
     id: 'attr-value-not-empty',
     description: 'All attributes must have values.',
     init: function(parser, reporter) {
-        let self = this;
+        const self = this;
         parser.addListener('tagstart', function(event) {
-            let attrs = event.attrs,
-                attr,
-                col = event.col + event.tagName.length + 1;
+            const attrs = event.attrs;
+            let attr;
+            const col = event.col + event.tagName.length + 1;
             for (let i = 0, l = attrs.length; i < l; i++) {
                 attr = attrs[i];
                 if (attr.quote === '' && attr.value === '') {

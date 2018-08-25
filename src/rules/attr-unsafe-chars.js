@@ -11,19 +11,19 @@ export const attrUnsafeCharsRule = {
     id: 'attr-unsafe-chars',
     description: 'Attribute values cannot contain unsafe chars.',
     init: function(parser, reporter) {
-        let self = this;
+        const self = this;
         parser.addListener('tagstart', function(event) {
-            let attrs = event.attrs,
-                attr,
-                col = event.col + event.tagName.length + 1;
+            const attrs = event.attrs;
+            let attr;
+            const col = event.col + event.tagName.length + 1;
             // exclude \x09(\t), \x0a(\r), \x0d(\n)
-            let regUnsafe = /[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f-\u009f\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/;
+            const regUnsafe = /[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f-\u009f\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/;
             let match;
             for (let i = 0, l = attrs.length; i < l; i++) {
                 attr = attrs[i];
                 match = attr.value.match(regUnsafe);
                 if (match !== null) {
-                    let unsafeCode = escape(match[0])
+                    const unsafeCode = escape(match[0])
                         .replace(/%u/, '\\u')
                         .replace(/%/, '\\x');
                     reporter.warn(

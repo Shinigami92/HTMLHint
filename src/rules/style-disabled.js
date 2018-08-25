@@ -11,7 +11,7 @@ export const styleDisabledRule = {
     id: 'style-disabled',
     description: '<style> tags cannot be used.',
     init: function(parser, reporter) {
-        let self = this;
+        const self = this;
         parser.addListener('tagstart', function(event) {
             if (event.tagName.toLowerCase() === 'style') {
                 reporter.warn(

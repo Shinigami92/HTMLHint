@@ -11,7 +11,7 @@ export const doctypeHtml5Rule = {
     id: 'doctype-html5',
     description: 'Invalid doctype. Use: "<!DOCTYPE html>"',
     init: function(parser, reporter) {
-        let self = this;
+        const self = this;
         function onComment(event) {
             if (
                 event.long === false &&
