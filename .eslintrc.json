@@ -1,0 +1,26 @@
+{
+    "env": {
+        "browser": true,
+        "commonjs": true,
+        "es6": true,
+        "node": true
+    },
+    "extends": "eslint:recommended",
+    "parserOptions": {
+        "ecmaVersion": 2016,
+        "sourceType": "module"
+    },
+    "rules": {
+        "indent": ["error", 4],
+        "linebreak-style": ["error", "unix"],
+        "quotes": ["error", "single", { "avoidEscape": true }],
+        "no-control-regex": "off",
+        "no-empty": ["error", { "allowEmptyCatch": true }],
+        "semi": ["error", "always"]
+    },
+    "globals": {
+        "HTMLHint": true,
+        "JSHINT": true,
+        "CSSLint": true
+    }
+}

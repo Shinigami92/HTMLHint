@@ -1,34 +1,53 @@
 /**
- * Copyright (c) 2015, Yanis Wang <yanis.wang@gmail.com>
- * MIT Licensed
+ * @license
+ * Copyright (c) 2015-2016 Yanis Wang <yanis.wang@gmail.com>
+ * Copyright (c) 2018 David Dias (Thanks to the initial contributor Yanis Wan)
+ *
+ * Use of this source code is governed by an MIT-style license that can be
+ * found in the LICENSE file at https://github.com/thedaviddias/HTMLHint/blob/master/LICENSE.md
  */
-HTMLHint.addRule({
+
+export const titleRequireRule = {
     id: 'title-require',
     description: '<title> must be present in <head> tag.',
-    init: function(parser, reporter){
+    init: function(parser, reporter) {
         var self = this;
         var headBegin = false;
         var hasTitle = false;
-        function onTagStart(event){
+        function onTagStart(event) {
             var tagName = event.tagName.toLowerCase();
-            if(tagName === 'head'){
+            if (tagName === 'head') {
                 headBegin = true;
-            }
-            else if(tagName === 'title' && headBegin){
+            } else if (tagName === 'title' && headBegin) {
                 hasTitle = true;
             }
         }
-        function onTagEnd(event){
+        function onTagEnd(event) {
             var tagName = event.tagName.toLowerCase();
-            if(hasTitle && tagName === 'title'){
+            if (hasTitle && tagName === 'title') {
                 var lastEvent = event.lastEvent;
-                if(lastEvent.type !== 'text' || (lastEvent.type === 'text' && /^\s*$/.test(lastEvent.raw) === true)){
-                    reporter.error('<title></title> must not be empty.', event.line, event.col, self, event.raw);
+                if (
+                    lastEvent.type !== 'text' ||
+                    (lastEvent.type === 'text' &&
+                        /^\s*$/.test(lastEvent.raw) === true)
+                ) {
+                    reporter.error(
+                        '<title></title> must not be empty.',
+                        event.line,
+                        event.col,
+                        self,
+                        event.raw
+                    );
                 }
-            }
-            else if(tagName === 'head'){
-                if(hasTitle === false){
-                    reporter.error('<title> must be present in <head> tag.', event.line, event.col, self, event.raw);
+            } else if (tagName === 'head') {
+                if (hasTitle === false) {
+                    reporter.error(
+                        '<title> must be present in <head> tag.',
+                        event.line,
+                        event.col,
+                        self,
+                        event.raw
+                    );
                 }
                 parser.removeListener('tagstart', onTagStart);
                 parser.removeListener('tagend', onTagEnd);
@@ -37,4 +56,4 @@ HTMLHint.addRule({
         parser.addListener('tagstart', onTagStart);
         parser.addListener('tagend', onTagEnd);
     }
-});
+};
