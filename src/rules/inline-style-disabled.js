@@ -11,12 +11,12 @@ export const inlineStyleDisabledRule = {
     id: 'inline-style-disabled',
     description: 'Inline style cannot be used.',
     init: function(parser, reporter) {
-        var self = this;
+        let self = this;
         parser.addListener('tagstart', function(event) {
-            var attrs = event.attrs;
-            var attr;
-            var col = event.col + event.tagName.length + 1;
-            for (var i = 0, l = attrs.length; i < l; i++) {
+            let attrs = event.attrs;
+            let attr;
+            let col = event.col + event.tagName.length + 1;
+            for (let i = 0, l = attrs.length; i < l; i++) {
                 attr = attrs[i];
                 if (attr.name.toLowerCase() === 'style') {
                     reporter.warn(

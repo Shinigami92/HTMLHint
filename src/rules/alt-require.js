@@ -13,9 +13,9 @@ export const altRequireRule = {
     description:
         'The alt attribute of an <img> element must be present and alt attribute of area[href] and input[type=image] must have a value.',
     init: function(parser, reporter) {
-        var self = this;
+        let self = this;
         parser.addListener('tagstart', function(event) {
-            var tagName = event.tagName.toLowerCase(),
+            let tagName = event.tagName.toLowerCase(),
                 mapAttrs = parser.getMapAttrs(event.attrs),
                 col = event.col + tagName.length + 1,
                 selector;

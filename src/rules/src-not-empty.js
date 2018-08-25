@@ -11,13 +11,13 @@ export const srcNotEmptyRule = {
     id: 'src-not-empty',
     description: 'The src attribute of an img(script,link) must have a value.',
     init: function(parser, reporter) {
-        var self = this;
+        let self = this;
         parser.addListener('tagstart', function(event) {
-            var tagName = event.tagName,
+            let tagName = event.tagName,
                 attrs = event.attrs,
                 attr,
                 col = event.col + tagName.length + 1;
-            for (var i = 0, l = attrs.length; i < l; i++) {
+            for (let i = 0, l = attrs.length; i < l; i++) {
                 attr = attrs[i];
                 if (
                     ((/^(img|script|embed|bgsound|iframe)$/.test(tagName) ===

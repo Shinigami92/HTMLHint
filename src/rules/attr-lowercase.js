@@ -11,15 +11,15 @@ export const attrLowercaseRule = {
     id: 'attr-lowercase',
     description: 'All attribute names must be in lowercase.',
     init: function(parser, reporter, options) {
-        var self = this;
-        var exceptions = Array.isArray(options) ? options : [];
+        let self = this;
+        let exceptions = Array.isArray(options) ? options : [];
         parser.addListener('tagstart', function(event) {
-            var attrs = event.attrs,
+            let attrs = event.attrs,
                 attr,
                 col = event.col + event.tagName.length + 1;
-            for (var i = 0, l = attrs.length; i < l; i++) {
+            for (let i = 0, l = attrs.length; i < l; i++) {
                 attr = attrs[i];
-                var attrName = attr.name;
+                let attrName = attr.name;
                 if (
                     exceptions.indexOf(attrName) === -1 &&
                     attrName !== attrName.toLowerCase()

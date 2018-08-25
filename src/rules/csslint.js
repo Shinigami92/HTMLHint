@@ -11,10 +11,10 @@ export const csslintRule = {
     id: 'csslint',
     description: 'Scan css with csslint.',
     init: function(parser, reporter, options) {
-        var self = this;
+        let self = this;
         parser.addListener('cdata', function(event) {
             if (event.tagName.toLowerCase() === 'style') {
-                var cssVerify;
+                let cssVerify;
 
                 if (typeof exports === 'object' && require) {
                     cssVerify = require('csslint').CSSLint.verify;
@@ -23,12 +23,12 @@ export const csslintRule = {
                 }
 
                 if (options !== undefined) {
-                    var styleLine = event.line - 1,
+                    let styleLine = event.line - 1,
                         styleCol = event.col - 1;
                     try {
-                        var messages = cssVerify(event.raw, options).messages;
+                        let messages = cssVerify(event.raw, options).messages;
                         messages.forEach(function(error) {
-                            var line = error.line;
+                            let line = error.line;
                             reporter[
                                 error.type === 'warning' ? 'warn' : 'error'
                             ](

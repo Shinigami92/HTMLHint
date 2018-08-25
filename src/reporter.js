@@ -30,10 +30,10 @@ export class Reporter {
     }
 
     report(type, message, line, col, rule, raw) {
-        var lines = this.lines;
-        var brLen = this.brLen;
-        var evidence, evidenceLen;
-        for (var i = line - 1, lineCount = lines.length; i < lineCount; i++) {
+        let lines = this.lines;
+        let brLen = this.brLen;
+        let evidence, evidenceLen;
+        for (let i = line - 1, lineCount = lines.length; i < lineCount; i++) {
             evidence = lines[i];
             evidenceLen = evidence.length;
             if (col > evidenceLen && line < lineCount) {

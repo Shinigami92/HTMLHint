@@ -68,12 +68,12 @@ export class HTMLHint {
             }
         );
 
-        var parser = new HTMLParser();
-        var reporter = new Reporter(html, ruleset);
+        let parser = new HTMLParser();
+        let reporter = new Reporter(html, ruleset);
 
-        var rules = this.rules,
+        let rules = this.rules,
             rule;
-        for (var id in ruleset) {
+        for (let id in ruleset) {
             rule = rules[id];
             if (rule !== undefined && ruleset[id] !== false) {
                 rule.init(parser, reporter, ruleset[id]);
@@ -88,8 +88,8 @@ export class HTMLHint {
     // format messages
     format(arrMessages, options) {
         options = options || {};
-        var arrLogs = [];
-        var colors = {
+        let arrLogs = [];
+        let colors = {
             white: '',
             grey: '',
             red: '',
@@ -101,16 +101,16 @@ export class HTMLHint {
             colors.red = '\\033[31m';
             colors.reset = '\\033[39m';
         }
-        var indent = options.indent || 0;
+        let indent = options.indent || 0;
         arrMessages.forEach((hint) => {
-            var leftWindow = 40;
-            var rightWindow = leftWindow + 20;
-            var evidence = hint.evidence;
-            var line = hint.line;
-            var col = hint.col;
-            var evidenceCount = evidence.length;
-            var leftCol = col > leftWindow + 1 ? col - leftWindow : 1;
-            var rightCol =
+            let leftWindow = 40;
+            let rightWindow = leftWindow + 20;
+            let evidence = hint.evidence;
+            let line = hint.line;
+            let col = hint.col;
+            let evidenceCount = evidence.length;
+            let leftCol = col > leftWindow + 1 ? col - leftWindow : 1;
+            let rightCol =
                 evidence.length > col + rightWindow
                     ? col + rightWindow
                     : evidenceCount;
@@ -140,9 +140,9 @@ export class HTMLHint {
                     colors.reset
             );
             // show pointer & message
-            var pointCol = col - leftCol;
+            let pointCol = col - leftCol;
             // add double byte character
-            var match = evidence
+            let match = evidence
                 .substring(0, pointCol)
                 .match(/[^\u0000-\u00ff]/g);
             if (match !== null) {

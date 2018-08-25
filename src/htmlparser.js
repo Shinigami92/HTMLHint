@@ -16,9 +16,9 @@ export class HTMLParser {
     }
 
     makeMap(str) {
-        var obj = {},
+        let obj = {},
             items = str.split(',');
-        for (var i = 0; i < items.length; i++) {
+        for (let i = 0; i < items.length; i++) {
             obj[items[i]] = true;
         }
         return obj;
@@ -26,13 +26,13 @@ export class HTMLParser {
 
     // parse html code
     parse(html) {
-        var mapCdataTags = this._mapCdataTags;
+        let mapCdataTags = this._mapCdataTags;
 
-        var regTag = /<(?:\/([^\s>]+)\s*|!--([\s\S]*?)--|!([^>]*?)|([\w\-:]+)((?:\s+[^\s"'>/=\x00-\x0F\x7F\x80-\x9F]+(?:\s*=\s*(?:"[^"]*"|'[^']*'|[^\s"'>]*))?)*?)\s*(\/?))>/g,
+        let regTag = /<(?:\/([^\s>]+)\s*|!--([\s\S]*?)--|!([^>]*?)|([\w\-:]+)((?:\s+[^\s"'>/=\x00-\x0F\x7F\x80-\x9F]+(?:\s*=\s*(?:"[^"]*"|'[^']*'|[^\s"'>]*))?)*?)\s*(\/?))>/g,
             regAttr = /\s*([^\s"'>/=\x00-\x0F\x7F\x80-\x9F]+)(?:\s*=\s*(?:(")([^"]*)"|(')([^']*)'|([^\s"'>]*)))?/g,
             regLine = /\r?\n/g;
 
-        var match,
+        let match,
             matchIndex,
             lastIndex = 0,
             tagName,
@@ -42,13 +42,13 @@ export class HTMLParser {
             arrCDATA,
             lastCDATAIndex = 0,
             text;
-        var lastLineIndex = 0,
+        let lastLineIndex = 0,
             line = 1;
-        var arrBlocks = this._arrBlocks;
+        let arrBlocks = this._arrBlocks;
 
         //存储区块
-        var saveBlock = (type, raw, pos, data) => {
-            var col = pos - lastLineIndex + 1;
+        let saveBlock = (type, raw, pos, data) => {
+            let col = pos - lastLineIndex + 1;
             if (data === undefined) {
                 data = {};
             }
@@ -111,11 +111,11 @@ export class HTMLParser {
                 if ((tagName = match[4])) {
                     //标签开始
                     arrAttrs = [];
-                    var attrs = match[5],
-                        attrMatch,
-                        attrMatchCount = 0;
+                    let attrs = match[5];
+                    let attrMatch;
+                    let attrMatchCount = 0;
                     while ((attrMatch = regAttr.exec(attrs))) {
-                        var name = attrMatch[1],
+                        let name = attrMatch[1],
                             quote = attrMatch[2]
                                 ? attrMatch[2]
                                 : attrMatch[4]
@@ -178,10 +178,10 @@ export class HTMLParser {
 
     // add event
     addListener(types, listener) {
-        var _listeners = this._listeners;
-        var arrTypes = types.split(/[,\s]/),
+        let _listeners = this._listeners;
+        let arrTypes = types.split(/[,\s]/),
             type;
-        for (var i = 0, l = arrTypes.length; i < l; i++) {
+        for (let i = 0, l = arrTypes.length; i < l; i++) {
             type = arrTypes[i];
             if (_listeners[type] === undefined) {
                 _listeners[type] = [];
@@ -196,7 +196,7 @@ export class HTMLParser {
             data = {};
         }
         data.type = type;
-        var listeners = [],
+        let listeners = [],
             listenersType = this._listeners[type],
             listenersAll = this._listeners['all'];
         if (listenersType !== undefined) {
@@ -205,22 +205,22 @@ export class HTMLParser {
         if (listenersAll !== undefined) {
             listeners = listeners.concat(listenersAll);
         }
-        var lastEvent = this.lastEvent;
+        let lastEvent = this.lastEvent;
         if (lastEvent !== null) {
             delete lastEvent['lastEvent'];
             data.lastEvent = lastEvent;
         }
         this.lastEvent = data;
-        for (var i = 0, l = listeners.length; i < l; i++) {
+        for (let i = 0, l = listeners.length; i < l; i++) {
             listeners[i].call(this, data);
         }
     }
 
     // remove event
     removeListener(type, listener) {
-        var listenersType = this._listeners[type];
+        let listenersType = this._listeners[type];
         if (listenersType !== undefined) {
-            for (var i = 0, l = listenersType.length; i < l; i++) {
+            for (let i = 0, l = listenersType.length; i < l; i++) {
                 if (listenersType[i] === listener) {
                     listenersType.splice(i, 1);
                     break;
@@ -231,8 +231,8 @@ export class HTMLParser {
 
     //fix pos if event.raw have \n
     fixPos(event, index) {
-        var text = event.raw.substr(0, index);
-        var arrLines = text.split(/\r?\n/),
+        let text = event.raw.substr(0, index);
+        let arrLines = text.split(/\r?\n/),
             lineCount = arrLines.length - 1,
             line = event.line,
             col;
@@ -250,9 +250,9 @@ export class HTMLParser {
 
     // covert array type of attrs to map
     getMapAttrs(arrAttrs) {
-        var mapAttrs = {},
+        let mapAttrs = {},
             attr;
-        for (var i = 0, l = arrAttrs.length; i < l; i++) {
+        for (let i = 0, l = arrAttrs.length; i < l; i++) {
             attr = arrAttrs[i];
             mapAttrs[attr.name] = attr.value;
         }

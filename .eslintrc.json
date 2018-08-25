@@ -16,6 +16,7 @@
         "quotes": ["error", "single", { "avoidEscape": true }],
         "no-control-regex": "off",
         "no-empty": ["error", { "allowEmptyCatch": true }],
+        "no-var": "error",
         "semi": ["error", "always"]
     },
     "globals": {

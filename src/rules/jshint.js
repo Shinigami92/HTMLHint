@@ -11,10 +11,10 @@ export const jshintRule = {
     id: 'jshint',
     description: 'Scan script with jshint.',
     init: function(parser, reporter, options) {
-        var self = this;
+        let self = this;
         parser.addListener('cdata', function(event) {
             if (event.tagName.toLowerCase() === 'script') {
-                var mapAttrs = parser.getMapAttrs(event.attrs),
+                let mapAttrs = parser.getMapAttrs(event.attrs),
                     type = mapAttrs.type;
 
                 // Only scan internal javascript
@@ -25,7 +25,7 @@ export const jshintRule = {
                     return;
                 }
 
-                var jsVerify;
+                let jsVerify;
 
                 if (typeof exports === 'object' && require) {
                     jsVerify = require('jshint').JSHINT;
@@ -34,14 +34,14 @@ export const jshintRule = {
                 }
 
                 if (options !== undefined) {
-                    var styleLine = event.line - 1,
+                    let styleLine = event.line - 1,
                         styleCol = event.col - 1;
-                    var code = event.raw.replace(/\t/g, ' ');
+                    let code = event.raw.replace(/\t/g, ' ');
                     try {
-                        var status = jsVerify(code, options);
+                        let status = jsVerify(code, options);
                         if (status === false) {
                             jsVerify.errors.forEach(function(error) {
-                                var line = error.line;
+                                let line = error.line;
                                 reporter.warn(
                                     error.reason,
                                     styleLine + line,

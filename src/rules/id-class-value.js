@@ -12,8 +12,8 @@ export const idClassValueRule = {
     description:
         'The id and class attribute values must meet the specified rules.',
     init: function(parser, reporter, options) {
-        var self = this;
-        var arrRules = {
+        let self = this;
+        let arrRules = {
                 underline: {
                     regId: /^[a-z\d]+(_[a-z\d]+)*$/,
                     message:
@@ -37,13 +37,13 @@ export const idClassValueRule = {
             rule = options;
         }
         if (rule && rule.regId) {
-            var regId = rule.regId,
+            let regId = rule.regId,
                 message = rule.message;
             parser.addListener('tagstart', function(event) {
-                var attrs = event.attrs,
+                let attrs = event.attrs,
                     attr,
                     col = event.col + event.tagName.length + 1;
-                for (var i = 0, l1 = attrs.length; i < l1; i++) {
+                for (let i = 0, l1 = attrs.length; i < l1; i++) {
                     attr = attrs[i];
                     if (attr.name.toLowerCase() === 'id') {
                         if (regId.test(attr.value) === false) {
@@ -57,9 +57,9 @@ export const idClassValueRule = {
                         }
                     }
                     if (attr.name.toLowerCase() === 'class') {
-                        var arrClass = attr.value.split(/\s+/g),
+                        let arrClass = attr.value.split(/\s+/g),
                             classValue;
-                        for (var j = 0, l2 = arrClass.length; j < l2; j++) {
+                        for (let j = 0, l2 = arrClass.length; j < l2; j++) {
                             classValue = arrClass[j];
                             if (
                                 classValue &&
