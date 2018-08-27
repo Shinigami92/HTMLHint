@@ -1,5 +1,3 @@
-#!/usr/bin/env node
-
 var program = require('commander');
 var fs = require('fs');
 var path = require('path');
@@ -9,7 +7,7 @@ var glob = require("glob");
 var parseGlob = require('parse-glob');
 var request = require('request');
 
-var HTMLHint  = require("../index").HTMLHint;
+var HTMLHint  = require('./core').HTMLHint;
 var formatter = require('./formatter');
 var pkg = require('../package.json');
 

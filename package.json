@@ -33,7 +33,7 @@
     "semantic-release": "^15.9.9"
   },
   "bin": {
-    "htmlhint": "./bin/htmlhint"
+    "htmlhint": "./bin/htmlhint.js"
   },
   "repository": {
     "type": "git",
