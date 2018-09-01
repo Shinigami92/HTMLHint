@@ -1,5 +1,5 @@
-var unixFormatter = function(formatter, HTMLHint, options) {
-    var nocolor = options.nocolor;
+const unixFormatter = function(formatter, HTMLHint, options) {
+    const nocolor = options.nocolor;
     formatter.on('file', function(event) {
         event.messages.forEach(function(message) {
             console.log(
@@ -13,10 +13,10 @@ var unixFormatter = function(formatter, HTMLHint, options) {
         });
     });
     formatter.on('end', function(event) {
-        var allHintCount = event.allHintCount;
+        const allHintCount = event.allHintCount;
         if (allHintCount > 0) {
             console.log('');
-            var message = '%d problems';
+            const message = '%d problems';
             console.log(nocolor ? message : message.red, event.allHintCount);
         }
     });

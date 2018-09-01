@@ -1,24 +1,24 @@
 #!/usr/bin/env node
 
-var program = require('commander');
-var fs = require('fs');
-var path = require('path');
-var stripJsonComments = require('strip-json-comments');
-var async = require('async');
-var glob = require('glob');
-var parseGlob = require('parse-glob');
-var request = require('request');
+const program = require('commander');
+const fs = require('fs');
+const path = require('path');
+const stripJsonComments = require('strip-json-comments');
+const async = require('async');
+const glob = require('glob');
+const parseGlob = require('parse-glob');
+const request = require('request');
 
-var HTMLHint = require('./htmlhint').HTMLHint;
-var formatter = require('./formatter');
-var pkg = require('../package.json');
+const HTMLHint = require('./htmlhint').HTMLHint;
+const formatter = require('./formatter');
+const pkg = require('../package.json');
 
 require('colors');
 
 function map(val) {
-    var objMap = {};
+    const objMap = {};
     val.split(',').forEach(function(item) {
-        var arrItem = item.split(/\s*=\s*/);
+        const arrItem = item.split(/\s*=\s*/);
         objMap[arrItem[0]] = arrItem[1] ? arrItem[1] : true;
     });
     return objMap;
@@ -42,7 +42,7 @@ program.on('--help', function() {
     console.log('');
 });
 
-var arrSupportedFormatters = formatter.getSupported();
+const arrSupportedFormatters = formatter.getSupported();
 
 program
     .version(pkg.version)
@@ -65,7 +65,7 @@ if (program.list) {
     process.exit(0);
 }
 
-var arrTargets = program.args;
+const arrTargets = program.args;
 if (arrTargets.length === 0) {
     arrTargets.push('./');
 }
@@ -74,7 +74,7 @@ if (arrTargets.length === 0) {
 formatter.init(HTMLHint, {
     nocolor: program.nocolor
 });
-var format = program.format || 'default';
+const format = program.format || 'default';
 if (format) {
     formatter.setFormat(format);
 }
@@ -88,27 +88,27 @@ hintTargets(arrTargets, {
 
 // list all rules
 function listRules() {
-    var rules = HTMLHint.rules;
-    var rule;
+    const rules = HTMLHint.rules;
+    let rule;
     console.log('     All rules:');
     console.log(' ==================================================');
-    for (var id in rules) {
+    for (const id in rules) {
         rule = rules[id];
         console.log('     %s : %s', rule.id.bold, rule.description);
     }
 }
 
 function hintTargets(arrTargets, options) {
-    var arrAllMessages = [];
-    var allFileCount = 0;
-    var allHintFileCount = 0;
-    var allHintCount = 0;
-    var startTime = new Date().getTime();
+    let arrAllMessages = [];
+    let allFileCount = 0;
+    let allHintFileCount = 0;
+    let allHintCount = 0;
+    const startTime = new Date().getTime();
 
-    var formatter = options.formatter;
+    const formatter = options.formatter;
 
     // load custom rules
-    var rulesdir = options.rulesdir;
+    const rulesdir = options.rulesdir;
     if (rulesdir) {
         loadCustomRules(rulesdir);
     }
@@ -116,7 +116,7 @@ function hintTargets(arrTargets, options) {
     // start hint
     formatter.emit('start');
 
-    var arrTasks = [];
+    const arrTasks = [];
     arrTargets.forEach(function(target) {
         arrTasks.push(function(next) {
             hintAllFiles(target, options, function(result) {
@@ -130,7 +130,7 @@ function hintTargets(arrTargets, options) {
     });
     async.series(arrTasks, function() {
         // end hint
-        var spendTime = new Date().getTime() - startTime;
+        const spendTime = new Date().getTime() - startTime;
         formatter.emit('end', {
             arrAllMessages: arrAllMessages,
             allFileCount: allFileCount,
@@ -149,7 +149,7 @@ function loadCustomRules(rulesdir) {
         if (fs.statSync(rulesdir).isDirectory()) {
             rulesdir += /\/$/.test(rulesdir) ? '' : '/';
             rulesdir += '**/*.js';
-            var arrFiles = glob.sync(rulesdir, {
+            const arrFiles = glob.sync(rulesdir, {
                 dot: false,
                 nodir: true,
                 strict: false,
@@ -168,44 +168,44 @@ function loadCustomRules(rulesdir) {
 function loadRule(filepath) {
     filepath = path.resolve(filepath);
     try {
-        var module = require(filepath);
+        const module = require(filepath);
         module(HTMLHint);
     } catch (e) {}
 }
 
 // hint all files
 function hintAllFiles(target, options, onFinised) {
-    var globInfo = getGlobInfo(target);
+    const globInfo = getGlobInfo(target);
     globInfo.ignore = options.ignore;
 
-    var formatter = options.formatter;
+    const formatter = options.formatter;
 
     // hint result
-    var targetFileCount = 0;
-    var targetHintFileCount = 0;
-    var targetHintCount = 0;
-    var arrTargetMessages = [];
+    let targetFileCount = 0;
+    let targetHintFileCount = 0;
+    let targetHintCount = 0;
+    const arrTargetMessages = [];
 
     // init ruleset
-    var ruleset = options.ruleset;
+    let ruleset = options.ruleset;
     if (ruleset === undefined) {
         ruleset = getConfig(program.config, globInfo.base, formatter);
     }
 
     // hint queue
-    var hintQueue = async.queue(function(filepath, next) {
-        var startTime = new Date().getTime();
+    const hintQueue = async.queue(function(filepath, next) {
+        const startTime = new Date().getTime();
         if (filepath === 'stdin') {
             hintStdin(ruleset, hintNext);
         } else if (/^https?:\/\//.test(filepath)) {
             hintUrl(filepath, ruleset, hintNext);
         } else {
-            var messages = hintFile(filepath, ruleset);
+            const messages = hintFile(filepath, ruleset);
             hintNext(messages);
         }
         function hintNext(messages) {
-            var spendTime = new Date().getTime() - startTime;
-            var hintCount = messages.length;
+            const spendTime = new Date().getTime() - startTime;
+            const hintCount = messages.length;
             if (hintCount > 0) {
                 formatter.emit('file', {
                     file: filepath,
@@ -225,8 +225,8 @@ function hintAllFiles(target, options, onFinised) {
         }
     }, 10);
     // start hint
-    var isWalkDone = false;
-    var isHintDone = true;
+    let isWalkDone = false;
+    let isHintDone = true;
     hintQueue.drain = function() {
         isHintDone = true;
         checkAllHinted();
@@ -266,12 +266,12 @@ function hintAllFiles(target, options, onFinised) {
 function getGlobInfo(target) {
     // fix windows sep
     target = target.replace(/\\/g, '/');
-    var globInfo = parseGlob(target);
-    var base = path.resolve(globInfo.base);
+    const globInfo = parseGlob(target);
+    let base = path.resolve(globInfo.base);
     base += /\/$/.test(base) ? '' : '/';
-    var pattern = globInfo.glob;
-    var globPath = globInfo.path;
-    var defaultGlob = '*.{htm,html}';
+    let pattern = globInfo.glob;
+    const globPath = globInfo.path;
+    const defaultGlob = '*.{htm,html}';
     if (globInfo.is.glob === true) {
         // no basename
         if (globPath.basename === '') {
@@ -302,7 +302,7 @@ function getConfig(configPath, base, formatter) {
             base = path.dirname(base);
         }
         while (base) {
-            var tmpConfigFile = path.resolve(base + path.sep, '.htmlhintrc');
+            const tmpConfigFile = path.resolve(base + path.sep, '.htmlhintrc');
             if (fs.existsSync(tmpConfigFile)) {
                 configPath = tmpConfigFile;
                 break;
@@ -312,8 +312,8 @@ function getConfig(configPath, base, formatter) {
     }
 
     if (fs.existsSync(configPath)) {
-        var config = fs.readFileSync(configPath, 'utf-8'),
-            ruleset;
+        const config = fs.readFileSync(configPath, 'utf-8');
+        let ruleset;
         try {
             ruleset = JSON.parse(stripJsonComments(config));
             formatter.emit('config', {
@@ -327,16 +327,16 @@ function getConfig(configPath, base, formatter) {
 
 // walk path
 function walkPath(globInfo, callback, onFinish) {
-    var base = globInfo.base;
-    var pattern = globInfo.pattern;
-    var ignore = globInfo.ignore;
-    var arrIgnores = ['**/node_modules/**'];
+    let base = globInfo.base;
+    const pattern = globInfo.pattern;
+    const ignore = globInfo.ignore;
+    const arrIgnores = ['**/node_modules/**'];
     if (ignore) {
         ignore.split(',').forEach(function(pattern) {
             arrIgnores.push(pattern);
         });
     }
-    var walk = glob(
+    const walk = glob(
         pattern,
         {
             cwd: base,
@@ -358,7 +358,7 @@ function walkPath(globInfo, callback, onFinish) {
 
 // hint file
 function hintFile(filepath, ruleset) {
-    var content = '';
+    let content = '';
     try {
         content = fs.readFileSync(filepath, 'utf-8');
     } catch (e) {}
@@ -368,14 +368,14 @@ function hintFile(filepath, ruleset) {
 // hint stdin
 function hintStdin(ruleset, callback) {
     process.stdin.setEncoding('utf8');
-    var buffers = [];
+    const buffers = [];
     process.stdin.on('data', function(text) {
         buffers.push(text);
     });
 
     process.stdin.on('end', function() {
-        var content = buffers.join('');
-        var messages = HTMLHint.verify(content, ruleset);
+        const content = buffers.join('');
+        const messages = HTMLHint.verify(content, ruleset);
         callback(messages);
     });
 }
@@ -384,7 +384,7 @@ function hintStdin(ruleset, callback) {
 function hintUrl(url, ruleset, callback) {
     request.get(url, function(error, response, body) {
         if (!error && response.statusCode == 200) {
-            var messages = HTMLHint.verify(body, ruleset);
+            const messages = HTMLHint.verify(body, ruleset);
             callback(messages);
         } else {
             callback([]);
