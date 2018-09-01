@@ -1,7 +1,6 @@
 export const idClassValueRule = {
     id: 'id-class-value',
-    description:
-        'The id and class attribute values must meet the specified rules.',
+    description: 'The id and class attribute values must meet the specified rules.',
     init: function(parser, reporter, options) {
         const self = this;
         const arrRules = {
@@ -17,8 +16,7 @@ export const idClassValueRule = {
             },
             hump: {
                 regId: /^[a-z][a-zA-Z\d]*([A-Z][a-zA-Z\d]*)*$/,
-                message:
-                    'The id and class attribute values must meet the camelCase style.'
+                message: 'The id and class attribute values must meet the camelCase style.'
             }
         };
         let rule;
@@ -38,13 +36,7 @@ export const idClassValueRule = {
                     attr = attrs[i];
                     if (attr.name.toLowerCase() === 'id') {
                         if (regId.test(attr.value) === false) {
-                            reporter.warn(
-                                message,
-                                event.line,
-                                col + attr.index,
-                                self,
-                                attr.raw
-                            );
+                            reporter.warn(message, event.line, col + attr.index, self, attr.raw);
                         }
                     }
                     if (attr.name.toLowerCase() === 'class') {
@@ -52,10 +44,7 @@ export const idClassValueRule = {
                         let classValue;
                         for (let j = 0, l2 = arrClass.length; j < l2; j++) {
                             classValue = arrClass[j];
-                            if (
-                                classValue &&
-                                regId.test(classValue) === false
-                            ) {
+                            if (classValue && regId.test(classValue) === false) {
                                 reporter.warn(
                                     message,
                                     event.line,

@@ -4,10 +4,7 @@ export const doctypeHtml5Rule = {
     init: function(parser, reporter) {
         const self = this;
         function onComment(event) {
-            if (
-                event.long === false &&
-                event.content.toLowerCase() !== 'doctype html'
-            ) {
+            if (event.long === false && event.content.toLowerCase() !== 'doctype html') {
                 reporter.warn(
                     'Invalid doctype. Use: "<!DOCTYPE html>"',
                     event.line,

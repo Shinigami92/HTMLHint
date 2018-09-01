@@ -22,12 +22,9 @@ export const altRequireRule = {
                 (tagName === 'input' && mapAttrs['type'] === 'image')
             ) {
                 if (!('alt' in mapAttrs) || mapAttrs['alt'] === '') {
-                    selector =
-                        tagName === 'area' ? 'area[href]' : 'input[type=image]';
+                    selector = tagName === 'area' ? 'area[href]' : 'input[type=image]';
                     reporter.warn(
-                        'The alt attribute of ' +
-                            selector +
-                            ' must have a value.',
+                        'The alt attribute of ' + selector + ' must have a value.',
                         event.line,
                         col,
                         self,

@@ -20,9 +20,7 @@ export const csslintRule = {
                         const messages = cssVerify(event.raw, options).messages;
                         messages.forEach(function(error) {
                             const line = error.line;
-                            reporter[
-                                error.type === 'warning' ? 'warn' : 'error'
-                            ](
+                            reporter[error.type === 'warning' ? 'warn' : 'error'](
                                 '[' + error.rule.id + '] ' + error.message,
                                 styleLine + line,
                                 (line === 1 ? styleCol : 0) + error.col,

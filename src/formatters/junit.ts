@@ -1,4 +1,4 @@
-const xml = require('xml');
+import xml = require('xml');
 
 const junitFormatter = function(formatter, HTMLHint) {
     formatter.on('end', function(event) {

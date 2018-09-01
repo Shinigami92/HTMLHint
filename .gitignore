@@ -9,6 +9,7 @@ selenium-debug.log
 dist/
 .tmp/
 coverage
+lib
 
 # Editor directories and files
 .idea

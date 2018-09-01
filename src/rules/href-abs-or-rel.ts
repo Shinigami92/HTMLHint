@@ -15,10 +15,8 @@ export const hrefAbsOrRelRule = {
                 attr = attrs[i];
                 if (attr.name === 'href') {
                     if (
-                        (hrefMode === 'absolute' &&
-                            /^\w+?:/.test(attr.value) === false) ||
-                        (hrefMode === 'relative' &&
-                            /^https?:\/\//.test(attr.value) === true)
+                        (hrefMode === 'absolute' && /^\w+?:/.test(attr.value) === false) ||
+                        (hrefMode === 'relative' && /^https?:\/\//.test(attr.value) === true)
                     ) {
                         reporter.warn(
                             'The value of the href attribute [ ' +

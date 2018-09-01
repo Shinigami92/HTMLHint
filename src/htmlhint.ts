@@ -1,4 +1,4 @@
-const HTMLHint = require('./core').HTMLHint;
+import { HTMLHint } from './core';
 
 const HTMLHintInstance = new HTMLHint();
 

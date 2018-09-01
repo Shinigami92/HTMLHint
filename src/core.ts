@@ -12,7 +12,7 @@ export class HTMLHint {
         this.release = '@RELEASE';
 
         this.rules = {};
-        Object.keys(rules).forEach((key) => this.addRule(rules[key]));
+        Object.keys(rules).forEach(key => this.addRule(rules[key]));
 
         this.defaultRuleset = {
             'tagname-lowercase': true,
@@ -38,26 +38,20 @@ export class HTMLHint {
         }
 
         // parse inline ruleset
-        html = html.replace(
-            /^\s*<!--\s*htmlhint\s+([^\r\n]+?)\s*-->/i,
-            (all, strRuleset) => {
-                if (ruleset === undefined) {
-                    ruleset = {};
-                }
-                strRuleset.replace(
-                    /(?:^|,)\s*([^:,]+)\s*(?::\s*([^,\s]+))?/g,
-                    (all, key, value) => {
-                        if (value === 'false') {
-                            value = false;
-                        } else if (value === 'true') {
-                            value = true;
-                        }
-                        ruleset[key] = value === undefined ? true : value;
-                    }
-                );
-                return '';
+        html = html.replace(/^\s*<!--\s*htmlhint\s+([^\r\n]+?)\s*-->/i, (all, strRuleset) => {
+            if (ruleset === undefined) {
+                ruleset = {};
             }
-        );
+            strRuleset.replace(/(?:^|,)\s*([^:,]+)\s*(?::\s*([^,\s]+))?/g, (all, key, value) => {
+                if (value === 'false') {
+                    value = false;
+                } else if (value === 'true') {
+                    value = true;
+                }
+                ruleset[key] = value === undefined ? true : value;
+            });
+            return '';
+        });
 
         const parser = new HTMLParser();
         const reporter = new Reporter(html, ruleset);
@@ -93,7 +87,7 @@ export class HTMLHint {
             colors.reset = '\\033[39m';
         }
         const indent = options.indent || 0;
-        arrMessages.forEach((hint) => {
+        arrMessages.forEach(hint => {
             const leftWindow = 40;
             const rightWindow = leftWindow + 20;
             let evidence = hint.evidence;
@@ -101,16 +95,11 @@ export class HTMLHint {
             const col = hint.col;
             const evidenceCount = evidence.length;
             let leftCol = col > leftWindow + 1 ? col - leftWindow : 1;
-            let rightCol =
-                evidence.length > col + rightWindow
-                    ? col + rightWindow
-                    : evidenceCount;
+            let rightCol = evidence.length > col + rightWindow ? col + rightWindow : evidenceCount;
             if (col < leftWindow + 1) {
                 rightCol += leftWindow - col + 1;
             }
-            evidence = evidence
-                .replace(/\t/g, ' ')
-                .substring(leftCol - 1, rightCol);
+            evidence = evidence.replace(/\t/g, ' ').substring(leftCol - 1, rightCol);
             // add ...
             if (leftCol > 1) {
                 evidence = '...' + evidence;
@@ -133,9 +122,7 @@ export class HTMLHint {
             // show pointer & message
             let pointCol = col - leftCol;
             // add double byte character
-            const match = evidence
-                .substring(0, pointCol)
-                .match(/[^\u0000-\u00ff]/g);
+            const match = evidence.substring(0, pointCol).match(/[^\u0000-\u00ff]/g);
             if (match !== null) {
                 pointCol += match.length;
             }

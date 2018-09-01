@@ -4,10 +4,7 @@ export const doctypeFirstRule = {
     init: function(parser, reporter) {
         const self = this;
         const allEvent = function(event) {
-            if (
-                event.type === 'start' ||
-                (event.type === 'text' && /^\s*$/.test(event.raw))
-            ) {
+            if (event.type === 'start' || (event.type === 'text' && /^\s*$/.test(event.raw))) {
                 return;
             }
             if (

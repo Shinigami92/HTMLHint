@@ -1,6 +1,6 @@
-const path = require('path');
-const events = require('events');
-const glob = require('glob');
+import path from 'path';
+import events from 'events';
+import glob from 'glob';
 path.parse = path.parse || require('path-parse');
 
 let HTMLHint;

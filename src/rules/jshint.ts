@@ -36,8 +36,7 @@ export const jshintRule = {
                                 reporter.warn(
                                     error.reason,
                                     styleLine + line,
-                                    (line === 1 ? styleCol : 0) +
-                                        error.character,
+                                    (line === 1 ? styleCol : 0) + error.character,
                                     self,
                                     error.evidence
                                 );

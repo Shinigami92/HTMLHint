@@ -1,17 +1,17 @@
 #!/usr/bin/env node
 
-const program = require('commander');
-const fs = require('fs');
-const path = require('path');
-const stripJsonComments = require('strip-json-comments');
-const async = require('async');
-const glob = require('glob');
-const parseGlob = require('parse-glob');
-const request = require('request');
+import program = require('commander');
+import fs = require('fs');
+import path = require('path');
+import stripJsonComments = require('strip-json-comments');
+import async = require('async');
+import glob = require('glob');
+import parseGlob = require('parse-glob');
+import request = require('request');
 
 const HTMLHint = require('./htmlhint').HTMLHint;
-const formatter = require('./formatter');
-const pkg = require('../package.json');
+import formatter = require('./formatter');
+import pkg = require('../package.json');
 
 require('colors');
 

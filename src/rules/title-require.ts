@@ -19,8 +19,7 @@ export const titleRequireRule = {
                 const lastEvent = event.lastEvent;
                 if (
                     lastEvent.type !== 'text' ||
-                    (lastEvent.type === 'text' &&
-                        /^\s*$/.test(lastEvent.raw) === true)
+                    (lastEvent.type === 'text' && /^\s*$/.test(lastEvent.raw) === true)
                 ) {
                     reporter.error(
                         '<title></title> must not be empty.',

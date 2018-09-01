@@ -11,8 +11,7 @@ export const srcNotEmptyRule = {
             for (let i = 0, l = attrs.length; i < l; i++) {
                 attr = attrs[i];
                 if (
-                    ((/^(img|script|embed|bgsound|iframe)$/.test(tagName) ===
-                        true &&
+                    ((/^(img|script|embed|bgsound|iframe)$/.test(tagName) === true &&
                         attr.name === 'src') ||
                         (tagName === 'link' && attr.name === 'href') ||
                         (tagName === 'object' && attr.name === 'data')) &&

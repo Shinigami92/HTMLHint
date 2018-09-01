@@ -15,10 +15,7 @@ export const spaceTabMixedDisabledRule = {
             const reMixed = /(^|\r?\n)([ \t]+)/g;
             let match;
             while ((match = reMixed.exec(raw))) {
-                const fixedPos = parser.fixPos(
-                    event,
-                    match.index + match[1].length
-                );
+                const fixedPos = parser.fixPos(event, match.index + match[1].length);
                 if (fixedPos.col !== 1) {
                     continue;
                 }
@@ -50,10 +47,7 @@ export const spaceTabMixedDisabledRule = {
                             );
                         }
                     }
-                } else if (
-                    indentMode === 'tab' &&
-                    /^\t+$/.test(whiteSpace) === false
-                ) {
+                } else if (indentMode === 'tab' && /^\t+$/.test(whiteSpace) === false) {
                     reporter.warn(
                         'Please use tab for indentation.',
                         fixedPos.line,

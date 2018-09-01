@@ -10,9 +10,7 @@ export const specCharEscapeRule = {
             while ((match = reSpecChar.exec(raw))) {
                 const fixedPos = parser.fixPos(event, match.index);
                 reporter.error(
-                    'Special characters must be escaped : [ ' +
-                        match[0] +
-                        ' ].',
+                    'Special characters must be escaped : [ ' + match[0] + ' ].',
                     fixedPos.line,
                     fixedPos.col,
                     self,
