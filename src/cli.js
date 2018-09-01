@@ -5,11 +5,11 @@ var fs = require('fs');
 var path = require('path');
 var stripJsonComments = require('strip-json-comments');
 var async = require('async');
-var glob = require("glob");
+var glob = require('glob');
 var parseGlob = require('parse-glob');
 var request = require('request');
 
-var HTMLHint  = require("../index").HTMLHint;
+var HTMLHint = require('./htmlhint').HTMLHint;
 var formatter = require('./formatter');
 var pkg = require('../package.json');
 
@@ -17,14 +17,14 @@ require('colors');
 
 function map(val) {
     var objMap = {};
-    val.split(',').forEach(function(item){
+    val.split(',').forEach(function(item) {
         var arrItem = item.split(/\s*=\s*/);
-        objMap[arrItem[0]] = arrItem[1]?arrItem[1]:true;
+        objMap[arrItem[0]] = arrItem[1] ? arrItem[1] : true;
     });
     return objMap;
 }
 
-program.on('--help', function(){
+program.on('--help', function() {
     console.log('  Examples:');
     console.log('');
     console.log('    htmlhint');
@@ -51,28 +51,31 @@ program
     .option('-c, --config <file>', 'custom configuration file')
     .option('-r, --rules <ruleid, ruleid=value ...>', 'set all of the rules available', map)
     .option('-R, --rulesdir <file|folder>', 'load custom rules from file or folder')
-    .option('-f, --format <'+arrSupportedFormatters.join('|')+'>', 'output messages as custom format')
+    .option(
+        '-f, --format <' + arrSupportedFormatters.join('|') + '>',
+        'output messages as custom format'
+    )
     .option('-i, --ignore <pattern, pattern ...>', 'add pattern to exclude matches')
     .option('--nocolor', 'disable color')
     .option('--warn', 'Warn only, exit with 0')
     .parse(process.argv);
 
-if(program.list){
+if (program.list) {
     listRules();
     process.exit(0);
 }
 
 var arrTargets = program.args;
-if(arrTargets.length === 0){
+if (arrTargets.length === 0) {
     arrTargets.push('./');
 }
 
 // init formatter
 formatter.init(HTMLHint, {
-    'nocolor': program.nocolor
+    nocolor: program.nocolor
 });
 var format = program.format || 'default';
-if(format){
+if (format) {
     formatter.setFormat(format);
 }
 
@@ -84,18 +87,18 @@ hintTargets(arrTargets, {
 });
 
 // list all rules
-function listRules(){
+function listRules() {
     var rules = HTMLHint.rules;
     var rule;
     console.log('     All rules:');
     console.log(' ==================================================');
-    for (var id in rules){
+    for (var id in rules) {
         rule = rules[id];
         console.log('     %s : %s', rule.id.bold, rule.description);
     }
 }
 
-function hintTargets(arrTargets, options){
+function hintTargets(arrTargets, options) {
     var arrAllMessages = [];
     var allFileCount = 0;
     var allHintFileCount = 0;
@@ -106,7 +109,7 @@ function hintTargets(arrTargets, options){
 
     // load custom rules
     var rulesdir = options.rulesdir;
-    if(rulesdir){
+    if (rulesdir) {
         loadCustomRules(rulesdir);
     }
 
@@ -114,9 +117,9 @@ function hintTargets(arrTargets, options){
     formatter.emit('start');
 
     var arrTasks = [];
-    arrTargets.forEach(function(target){
-        arrTasks.push(function(next){
-            hintAllFiles(target, options, function(result){
+    arrTargets.forEach(function(target) {
+        arrTasks.push(function(next) {
+            hintAllFiles(target, options, function(result) {
                 allFileCount += result.targetFileCount;
                 allHintFileCount += result.targetHintFileCount;
                 allHintCount += result.targetHintCount;
@@ -125,7 +128,7 @@ function hintTargets(arrTargets, options){
             });
         });
     });
-    async.series(arrTasks, function(){
+    async.series(arrTasks, function() {
         // end hint
         var spendTime = new Date().getTime() - startTime;
         formatter.emit('end', {
@@ -140,40 +143,38 @@ function hintTargets(arrTargets, options){
 }
 
 // load custom rles
-function loadCustomRules(rulesdir){
+function loadCustomRules(rulesdir) {
     rulesdir = rulesdir.replace(/\\/g, '/');
-    if(fs.existsSync(rulesdir)){
-        if(fs.statSync(rulesdir).isDirectory()){
-            rulesdir += /\/$/.test(rulesdir)?'':'/';
+    if (fs.existsSync(rulesdir)) {
+        if (fs.statSync(rulesdir).isDirectory()) {
+            rulesdir += /\/$/.test(rulesdir) ? '' : '/';
             rulesdir += '**/*.js';
             var arrFiles = glob.sync(rulesdir, {
-                'dot': false,
-                'nodir': true,
-                'strict': false,
-                'silent': true
+                dot: false,
+                nodir: true,
+                strict: false,
+                silent: true
             });
-            arrFiles.forEach(function(file){
+            arrFiles.forEach(function(file) {
                 loadRule(file);
             });
-        }
-        else{
+        } else {
             loadRule(rulesdir);
         }
     }
 }
 
 // load rule
-function loadRule(filepath){
+function loadRule(filepath) {
     filepath = path.resolve(filepath);
-    try{
+    try {
         var module = require(filepath);
         module(HTMLHint);
-    }
-    catch(e){}
+    } catch (e) {}
 }
 
 // hint all files
-function hintAllFiles(target, options, onFinised){
+function hintAllFiles(target, options, onFinised) {
     var globInfo = getGlobInfo(target);
     globInfo.ignore = options.ignore;
 
@@ -187,41 +188,39 @@ function hintAllFiles(target, options, onFinised){
 
     // init ruleset
     var ruleset = options.ruleset;
-    if(ruleset === undefined){
+    if (ruleset === undefined) {
         ruleset = getConfig(program.config, globInfo.base, formatter);
     }
 
     // hint queue
-    var hintQueue = async.queue(function (filepath, next) {
+    var hintQueue = async.queue(function(filepath, next) {
         var startTime = new Date().getTime();
-        if(filepath === 'stdin'){
+        if (filepath === 'stdin') {
             hintStdin(ruleset, hintNext);
-        }
-        else if(/^https?:\/\//.test(filepath)){
+        } else if (/^https?:\/\//.test(filepath)) {
             hintUrl(filepath, ruleset, hintNext);
-        }
-        else{
+        } else {
             var messages = hintFile(filepath, ruleset);
             hintNext(messages);
         }
-        function hintNext(messages){
+        function hintNext(messages) {
             var spendTime = new Date().getTime() - startTime;
             var hintCount = messages.length;
-            if(hintCount > 0){
+            if (hintCount > 0) {
                 formatter.emit('file', {
-                    'file': filepath,
-                    'messages': messages,
-                    'time': spendTime
+                    file: filepath,
+                    messages: messages,
+                    time: spendTime
                 });
                 arrTargetMessages.push({
-                    'file': filepath,
-                    'messages': messages,
-                    'time': spendTime
+                    file: filepath,
+                    messages: messages,
+                    time: spendTime
                 });
-                targetHintFileCount ++;
+                targetHintFileCount++;
                 targetHintCount += hintCount;
             }
-            targetFileCount ++;
+            targetFileCount++;
             setImmediate(next);
         }
     }, 10);
@@ -232,8 +231,8 @@ function hintAllFiles(target, options, onFinised){
         isHintDone = true;
         checkAllHinted();
     };
-    function checkAllHinted(){
-        if(isWalkDone && isHintDone){
+    function checkAllHinted() {
+        if (isWalkDone && isHintDone) {
             onFinised({
                 targetFileCount: targetFileCount,
                 targetHintFileCount: targetHintFileCount,
@@ -242,27 +241,29 @@ function hintAllFiles(target, options, onFinised){
             });
         }
     }
-    if(target === 'stdin'){
+    if (target === 'stdin') {
         isWalkDone = true;
         hintQueue.push(target);
-    }
-    else if(/^https?:\/\//.test(target)){
+    } else if (/^https?:\/\//.test(target)) {
         isWalkDone = true;
         hintQueue.push(target);
-    }
-    else{
-        walkPath(globInfo, function(filepath){
-            isHintDone = false;
-            hintQueue.push(filepath);
-        }, function(){
-            isWalkDone = true;
-            checkAllHinted();
-        });
+    } else {
+        walkPath(
+            globInfo,
+            function(filepath) {
+                isHintDone = false;
+                hintQueue.push(filepath);
+            },
+            function() {
+                isWalkDone = true;
+                checkAllHinted();
+            }
+        );
     }
 }
 
 // split target to base & glob
-function getGlobInfo(target){
+function getGlobInfo(target) {
     // fix windows sep
     target = target.replace(/\\/g, '/');
     var globInfo = parseGlob(target);
@@ -271,19 +272,18 @@ function getGlobInfo(target){
     var pattern = globInfo.glob;
     var globPath = globInfo.path;
     var defaultGlob = '*.{htm,html}';
-    if(globInfo.is.glob === true){
+    if (globInfo.is.glob === true) {
         // no basename
-        if(globPath.basename === ''){
+        if (globPath.basename === '') {
             pattern += defaultGlob;
         }
-    }
-    else{
+    } else {
         // no basename
-        if(globPath.basename === ''){
+        if (globPath.basename === '') {
             pattern += '**/' + defaultGlob;
         }
         // detect directory
-        else if(fs.existsSync(target) && fs.statSync(target).isDirectory()){
+        else if (fs.existsSync(target) && fs.statSync(target).isDirectory()) {
             base += globPath.basename + '/';
             pattern = '**/' + defaultGlob;
         }
@@ -295,33 +295,32 @@ function getGlobInfo(target){
 }
 
 // search and load config
-function getConfig(configPath, base, formatter){
-    if(configPath === undefined && fs.existsSync(base)){
+function getConfig(configPath, base, formatter) {
+    if (configPath === undefined && fs.existsSync(base)) {
         // find default config file in parent directory
-        if(fs.statSync(base).isDirectory() === false){
+        if (fs.statSync(base).isDirectory() === false) {
             base = path.dirname(base);
         }
-        while(base){
-            var tmpConfigFile = path.resolve(base+path.sep, '.htmlhintrc');
-            if(fs.existsSync(tmpConfigFile)){
+        while (base) {
+            var tmpConfigFile = path.resolve(base + path.sep, '.htmlhintrc');
+            if (fs.existsSync(tmpConfigFile)) {
                 configPath = tmpConfigFile;
                 break;
             }
-            base = base.substring(0,base.lastIndexOf(path.sep));
+            base = base.substring(0, base.lastIndexOf(path.sep));
         }
     }
 
-    if(fs.existsSync(configPath)){
+    if (fs.existsSync(configPath)) {
         var config = fs.readFileSync(configPath, 'utf-8'),
             ruleset;
-        try{
+        try {
             ruleset = JSON.parse(stripJsonComments(config));
             formatter.emit('config', {
                 ruleset: ruleset,
                 configPath: configPath
             });
-        }
-        catch(e){}
+        } catch (e) {}
         return ruleset;
     }
 }
@@ -332,46 +331,49 @@ function walkPath(globInfo, callback, onFinish) {
     var pattern = globInfo.pattern;
     var ignore = globInfo.ignore;
     var arrIgnores = ['**/node_modules/**'];
-    if(ignore){
-        ignore.split(',').forEach(function(pattern){
+    if (ignore) {
+        ignore.split(',').forEach(function(pattern) {
             arrIgnores.push(pattern);
         });
     }
-    var walk = glob(pattern, {
-        'cwd': base,
-        'dot': false,
-        'ignore': arrIgnores,
-        'nodir': true,
-        'strict': false,
-        'silent': true
-    },function() {
-        onFinish();
-    });
-    walk.on('match', function(file){
+    var walk = glob(
+        pattern,
+        {
+            cwd: base,
+            dot: false,
+            ignore: arrIgnores,
+            nodir: true,
+            strict: false,
+            silent: true
+        },
+        function() {
+            onFinish();
+        }
+    );
+    walk.on('match', function(file) {
         base = base.replace(/^.\//, '');
         callback(base + file);
     });
 }
 
 // hint file
-function hintFile(filepath, ruleset){
+function hintFile(filepath, ruleset) {
     var content = '';
-    try{
+    try {
         content = fs.readFileSync(filepath, 'utf-8');
-    }
-    catch(e){}
+    } catch (e) {}
     return HTMLHint.verify(content, ruleset);
 }
 
 // hint stdin
-function hintStdin(ruleset, callback){
+function hintStdin(ruleset, callback) {
     process.stdin.setEncoding('utf8');
     var buffers = [];
-    process.stdin.on('data', function(text){
+    process.stdin.on('data', function(text) {
         buffers.push(text);
     });
 
-    process.stdin.on('end', function(){
+    process.stdin.on('end', function() {
         var content = buffers.join('');
         var messages = HTMLHint.verify(content, ruleset);
         callback(messages);
@@ -379,13 +381,12 @@ function hintStdin(ruleset, callback){
 }
 
 // hint url
-function hintUrl(url, ruleset, callback){
-    request.get(url, function(error, response, body){
-        if(!error && response.statusCode == 200){
+function hintUrl(url, ruleset, callback) {
+    request.get(url, function(error, response, body) {
+        if (!error && response.statusCode == 200) {
             var messages = HTMLHint.verify(body, ruleset);
             callback(messages);
-        }
-        else{
+        } else {
             callback([]);
         }
     });

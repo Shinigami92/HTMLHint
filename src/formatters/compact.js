@@ -1,8 +1,9 @@
-var compactFormatter = function(formatter, HTMLHint, options){
+var compactFormatter = function(formatter, HTMLHint, options) {
     var nocolor = options.nocolor;
-    formatter.on('file', function(event){
-        event.messages.forEach(function (message) {
-            console.log('%s: line %d, col %d, %s - %s (%s)',
+    formatter.on('file', function(event) {
+        event.messages.forEach(function(message) {
+            console.log(
+                '%s: line %d, col %d, %s - %s (%s)',
                 event.file,
                 message.line,
                 message.col,
@@ -12,9 +13,9 @@ var compactFormatter = function(formatter, HTMLHint, options){
             );
         });
     });
-    formatter.on('end', function(event){
+    formatter.on('end', function(event) {
         var allHintCount = event.allHintCount;
-        if(allHintCount > 0){
+        if (allHintCount > 0) {
             console.log('');
             var message = '%d problems';
             console.log(nocolor ? message : message.red, event.allHintCount);

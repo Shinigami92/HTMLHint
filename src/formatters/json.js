@@ -1,5 +1,5 @@
-var jsonFormatter = function(formatter){
-    formatter.on('end', function(event){
+var jsonFormatter = function(formatter) {
+    formatter.on('end', function(event) {
         console.log(JSON.stringify(event.arrAllMessages));
     });
 };

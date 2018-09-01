@@ -1,13 +1,13 @@
 var xml = require('xml');
 
-var checkstyleFormatter = function(formatter){
-    formatter.on('end', function(event){
+var checkstyleFormatter = function(formatter) {
+    formatter.on('end', function(event) {
         var arrFiles = [];
         var arrAllMessages = event.arrAllMessages;
-        arrAllMessages.forEach(function(fileInfo){
+        arrAllMessages.forEach(function(fileInfo) {
             var arrMessages = fileInfo.messages;
             var arrErrors = [];
-            arrMessages.forEach(function(message){
+            arrMessages.forEach(function(message) {
                 arrErrors.push({
                     error: {
                         _attr: {
@@ -15,7 +15,7 @@ var checkstyleFormatter = function(formatter){
                             column: message.col,
                             severity: message.type,
                             message: message.message,
-                            source: 'htmlhint.'+message.rule.id
+                            source: 'htmlhint.' + message.rule.id
                         }
                     }
                 });
@@ -33,16 +33,18 @@ var checkstyleFormatter = function(formatter){
         var objXml = {
             checkstyle: [
                 {
-                  _attr: {
-                    version: '4.3'
-                  }
+                    _attr: {
+                        version: '4.3'
+                    }
                 }
             ].concat(arrFiles)
         };
-        console.log(xml(objXml, {
-            declaration: true,
-            indent: '    '
-        }));
+        console.log(
+            xml(objXml, {
+                declaration: true,
+                indent: '    '
+            })
+        );
     });
 };
 module.exports = checkstyleFormatter;
