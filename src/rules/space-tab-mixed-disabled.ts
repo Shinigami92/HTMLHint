@@ -1,25 +1,29 @@
-export const spaceTabMixedDisabledRule = {
+import { FixPosResult, HTMLParser } from '../htmlparser';
+import { Reporter } from '../reporter';
+import { Rule, RuleConfig } from './html-rule';
+
+export const spaceTabMixedDisabledRule: Rule = {
     id: 'space-tab-mixed-disabled',
     description: 'Do not mix tabs and spaces for indentation.',
-    init: function(parser, reporter, options) {
-        const self = this;
-        let indentMode = 'nomix';
+    init(parser: HTMLParser, reporter: Reporter, options: RuleConfig): void {
+        const self: Rule = this;
+        let indentMode: string = 'nomix';
         let spaceLengthRequire = null;
         if (typeof options === 'string') {
             const match = options.match(/^([a-z]+)(\d+)?/);
             indentMode = match[1];
             spaceLengthRequire = match[2] && parseInt(match[2], 10);
         }
-        parser.addListener('text', function(event) {
+        parser.addListener('text', (event) => {
             const raw = event.raw;
-            const reMixed = /(^|\r?\n)([ \t]+)/g;
-            let match;
+            const reMixed: RegExp = /(^|\r?\n)([ \t]+)/g;
+            let match: RegExpExecArray | null;
             while ((match = reMixed.exec(raw))) {
-                const fixedPos = parser.fixPos(event, match.index + match[1].length);
+                const fixedPos: FixPosResult = parser.fixPos(event, match.index + match[1].length);
                 if (fixedPos.col !== 1) {
                     continue;
                 }
-                const whiteSpace = match[2];
+                const whiteSpace: string = match[2];
                 if (indentMode === 'space') {
                     if (spaceLengthRequire) {
                         if (
@@ -27,9 +31,7 @@ export const spaceTabMixedDisabledRule = {
                             whiteSpace.length % spaceLengthRequire !== 0
                         ) {
                             reporter.warn(
-                                'Please use space for indentation and keep ' +
-                                    spaceLengthRequire +
-                                    ' length.',
+                                `Please use space for indentation and keep ${spaceLengthRequire} length.`,
                                 fixedPos.line,
                                 1,
                                 self,

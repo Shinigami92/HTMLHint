@@ -1,13 +1,14 @@
-import xml = require('xml');
+import xml from 'xml';
+import { Formatter, FormatterCallback } from '../formatter';
 
-const checkstyleFormatter = function(formatter) {
-    formatter.on('end', function(event) {
+export const checkstyleFormatter: FormatterCallback = (formatter: Formatter): void => {
+    formatter.on('end', (event) => {
         const arrFiles = [];
         const arrAllMessages = event.arrAllMessages;
-        arrAllMessages.forEach(function(fileInfo) {
+        arrAllMessages.forEach((fileInfo) => {
             const arrMessages = fileInfo.messages;
             const arrErrors = [];
-            arrMessages.forEach(function(message) {
+            arrMessages.forEach((message) => {
                 arrErrors.push({
                     error: {
                         _attr: {
@@ -15,36 +16,15 @@ const checkstyleFormatter = function(formatter) {
                             column: message.col,
                             severity: message.type,
                             message: message.message,
-                            source: 'htmlhint.' + message.rule.id
+                            source: `htmlhint.${message.rule.id}`
                         }
                     }
                 });
             });
-            arrFiles.push({
-                file: [
-                    {
-                        _attr: {
-                            name: fileInfo.file
-                        }
-                    }
-                ].concat(arrErrors)
-            });
+            arrFiles.push({ file: [{ _attr: { name: fileInfo.file } }].concat(arrErrors) });
         });
-        const objXml = {
-            checkstyle: [
-                {
-                    _attr: {
-                        version: '4.3'
-                    }
-                }
-            ].concat(arrFiles)
-        };
-        console.log(
-            xml(objXml, {
-                declaration: true,
-                indent: '    '
-            })
-        );
+        const objXml = { checkstyle: [{ _attr: { version: '4.3' } }].concat(arrFiles) };
+        console.log(xml(objXml, { declaration: true, indent: '    ' }));
     });
 };
-module.exports = checkstyleFormatter;
+export default checkstyleFormatter;

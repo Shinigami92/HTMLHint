@@ -1,20 +1,24 @@
-export const titleRequireRule = {
+import { HTMLParser } from '../htmlparser';
+import { Reporter } from '../reporter';
+import { Rule } from './html-rule';
+
+export const titleRequireRule: Rule = {
     id: 'title-require',
     description: '<title> must be present in <head> tag.',
-    init: function(parser, reporter) {
-        const self = this;
-        let headBegin = false;
-        let hasTitle = false;
-        function onTagStart(event) {
-            const tagName = event.tagName.toLowerCase();
+    init(parser: HTMLParser, reporter: Reporter): void {
+        const self: Rule = this;
+        let headBegin: boolean = false;
+        let hasTitle: boolean = false;
+        function onTagStart(event): void {
+            const tagName: string = event.tagName.toLowerCase();
             if (tagName === 'head') {
                 headBegin = true;
             } else if (tagName === 'title' && headBegin) {
                 hasTitle = true;
             }
         }
-        function onTagEnd(event) {
-            const tagName = event.tagName.toLowerCase();
+        function onTagEnd(event): void {
+            const tagName: string = event.tagName.toLowerCase();
             if (hasTitle && tagName === 'title') {
                 const lastEvent = event.lastEvent;
                 if (

@@ -1,8 +1,12 @@
-export const idClassValueRule = {
+import { HTMLParser } from '../htmlparser';
+import { Reporter } from '../reporter';
+import { Rule, RuleConfig } from './html-rule';
+
+export const idClassValueRule: Rule = {
     id: 'id-class-value',
     description: 'The id and class attribute values must meet the specified rules.',
-    init: function(parser, reporter, options) {
-        const self = this;
+    init(parser: HTMLParser, reporter: Reporter, options: RuleConfig): void {
+        const self: Rule = this;
         const arrRules = {
             underline: {
                 regId: /^[a-z\d]+(_[a-z\d]+)*$/,
@@ -28,11 +32,11 @@ export const idClassValueRule = {
         if (rule && rule.regId) {
             const regId = rule.regId;
             const message = rule.message;
-            parser.addListener('tagstart', function(event) {
+            parser.addListener('tagstart', (event) => {
                 const attrs = event.attrs;
                 let attr;
-                const col = event.col + event.tagName.length + 1;
-                for (let i = 0, l1 = attrs.length; i < l1; i++) {
+                const col: number = event.col + event.tagName.length + 1;
+                for (let i: number = 0, l1: number = attrs.length; i < l1; i++) {
                     attr = attrs[i];
                     if (attr.name.toLowerCase() === 'id') {
                         if (regId.test(attr.value) === false) {
@@ -42,7 +46,7 @@ export const idClassValueRule = {
                     if (attr.name.toLowerCase() === 'class') {
                         const arrClass = attr.value.split(/\s+/g);
                         let classValue;
-                        for (let j = 0, l2 = arrClass.length; j < l2; j++) {
+                        for (let j: number = 0, l2: number = arrClass.length; j < l2; j++) {
                             classValue = arrClass[j];
                             if (classValue && regId.test(classValue) === false) {
                                 reporter.warn(

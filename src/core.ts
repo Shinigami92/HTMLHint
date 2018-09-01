@@ -1,67 +1,84 @@
+import { grey, red, white } from 'colors/safe';
+import colors from 'colors/safe';
 import { HTMLParser } from './htmlparser';
-import { Reporter } from './reporter';
+import { Reporter, ReporterMessage } from './reporter';
 import * as rules from './rules';
+import { Rule, RuleConfigMap, RuleRegistry } from './rules/html-rule';
 
-function repeatStr(n, str) {
-    return new Array(n + 1).join(str || ' ');
+function repeatStr(n: number, str: string = ' '): string {
+    return new Array(n + 1).join(str);
+}
+
+export interface FormatOption {
+    colors: boolean;
+    indent: number;
 }
 
 export class HTMLHint {
+    public readonly version: string = '@VERSION';
+    public readonly release: string = '@RELEASE';
+
+    public rules: RuleRegistry = {};
+
+    public defaultRuleset: RuleConfigMap = {
+        'tagname-lowercase': true,
+        'attr-lowercase': true,
+        'attr-value-double-quotes': true,
+        'doctype-first': true,
+        'tag-pair': true,
+        'spec-char-escape': true,
+        'id-unique': true,
+        'src-not-empty': true,
+        'attr-no-duplication': true,
+        'title-require': true
+    };
+
     constructor() {
-        this.version = '@VERSION';
-        this.release = '@RELEASE';
-
-        this.rules = {};
-        Object.keys(rules).forEach(key => this.addRule(rules[key]));
-
-        this.defaultRuleset = {
-            'tagname-lowercase': true,
-            'attr-lowercase': true,
-            'attr-value-double-quotes': true,
-            'doctype-first': true,
-            'tag-pair': true,
-            'spec-char-escape': true,
-            'id-unique': true,
-            'src-not-empty': true,
-            'attr-no-duplication': true,
-            'title-require': true
-        };
+        Object.keys(rules).forEach((key: string) => this.addRule(rules[key]));
     }
 
-    addRule(rule) {
+    public addRule(rule: Rule): void {
         this.rules[rule.id] = rule;
     }
 
-    verify(html, ruleset) {
+    public verify(html: string, ruleset?: RuleConfigMap): ReporterMessage[] {
         if (ruleset === undefined || Object.keys(ruleset).length === 0) {
             ruleset = this.defaultRuleset;
         }
 
         // parse inline ruleset
-        html = html.replace(/^\s*<!--\s*htmlhint\s+([^\r\n]+?)\s*-->/i, (all, strRuleset) => {
-            if (ruleset === undefined) {
-                ruleset = {};
-            }
-            strRuleset.replace(/(?:^|,)\s*([^:,]+)\s*(?::\s*([^,\s]+))?/g, (all, key, value) => {
-                if (value === 'false') {
-                    value = false;
-                } else if (value === 'true') {
-                    value = true;
+        html = html.replace(
+            /^\s*<!--\s*htmlhint\s+([^\r\n]+?)\s*-->/i,
+            (all: string, strRuleset: string) => {
+                if (ruleset === undefined) {
+                    ruleset = {};
                 }
-                ruleset[key] = value === undefined ? true : value;
-            });
-            return '';
-        });
+                strRuleset.replace(
+                    /(?:^|,)\s*([^:,]+)\s*(?::\s*([^,\s]+))?/g,
+                    (all: string, key: string, value?: 'true' | 'false' | boolean) => {
+                        if (value === 'false') {
+                            value = false;
+                        } else if (value === 'true') {
+                            value = true;
+                        }
+                        ruleset![key] = value === undefined ? true : value;
+                    }
+                );
+                return '';
+            }
+        );
 
-        const parser = new HTMLParser();
-        const reporter = new Reporter(html, ruleset);
+        const parser: HTMLParser = new HTMLParser();
+        const reporter: Reporter = new Reporter(html, ruleset);
 
-        const rules = this.rules;
-        let rule;
+        const rules: RuleRegistry = this.rules;
+        let rule: Rule;
         for (const id in ruleset) {
-            rule = rules[id];
-            if (rule !== undefined && ruleset[id] !== false) {
-                rule.init(parser, reporter, ruleset[id]);
+            if (ruleset.hasOwnProperty(id)) {
+                rule = rules[id];
+                if (ruleset[id] !== false) {
+                    rule.init(parser, reporter, ruleset[id]);
+                }
             }
         }
 
@@ -71,72 +88,55 @@ export class HTMLHint {
     }
 
     // format messages
-    format(arrMessages, options) {
-        options = options || {};
-        const arrLogs = [];
-        const colors = {
-            white: '',
-            grey: '',
-            red: '',
-            reset: ''
-        };
-        if (options.colors) {
-            colors.white = '\\033[37m';
-            colors.grey = '\\033[90m';
-            colors.red = '\\033[31m';
-            colors.reset = '\\033[39m';
+    public format(
+        arrMessages: ReporterMessage[],
+        options: FormatOption = {
+            colors: false,
+            indent: 0
         }
-        const indent = options.indent || 0;
-        arrMessages.forEach(hint => {
-            const leftWindow = 40;
-            const rightWindow = leftWindow + 20;
-            let evidence = hint.evidence;
-            const line = hint.line;
-            const col = hint.col;
-            const evidenceCount = evidence.length;
-            let leftCol = col > leftWindow + 1 ? col - leftWindow : 1;
-            let rightCol = evidence.length > col + rightWindow ? col + rightWindow : evidenceCount;
+    ): string[] {
+        const arrLogs: string[] = [];
+        if (!options.colors) {
+            colors.disable();
+        }
+        const indent: number = options.indent;
+        arrMessages.forEach((hint: ReporterMessage) => {
+            const leftWindow: number = 40;
+            const rightWindow: number = leftWindow + 20;
+            let evidence: string = hint.evidence;
+            const line: number = hint.line;
+            const col: number = hint.col;
+            const evidenceCount: number = evidence.length;
+            let leftCol: number = col > leftWindow + 1 ? col - leftWindow : 1;
+            let rightCol: number =
+                evidence.length > col + rightWindow ? col + rightWindow : evidenceCount;
             if (col < leftWindow + 1) {
                 rightCol += leftWindow - col + 1;
             }
             evidence = evidence.replace(/\t/g, ' ').substring(leftCol - 1, rightCol);
             // add ...
             if (leftCol > 1) {
-                evidence = '...' + evidence;
+                evidence = `...${evidence}`;
                 leftCol -= 3;
             }
             if (rightCol < evidenceCount) {
                 evidence += '...';
             }
             // show evidence
-            arrLogs.push(
-                colors.white +
-                    repeatStr(indent) +
-                    'L' +
-                    line +
-                    ' |' +
-                    colors.grey +
-                    evidence +
-                    colors.reset
-            );
+            arrLogs.push(`${white(`${repeatStr(indent)}L${line} |`)}${grey(evidence)}`);
             // show pointer & message
-            let pointCol = col - leftCol;
+            let pointCol: number = col - leftCol;
             // add double byte character
-            const match = evidence.substring(0, pointCol).match(/[^\u0000-\u00ff]/g);
+            const match: RegExpMatchArray | null = evidence
+                .substring(0, pointCol)
+                .match(/[^\u0000-\u00ff]/g);
             if (match !== null) {
                 pointCol += match.length;
             }
             arrLogs.push(
-                colors.white +
-                    repeatStr(indent) +
-                    repeatStr(String(line).length + 3 + pointCol) +
-                    '^ ' +
-                    colors.red +
-                    hint.message +
-                    ' (' +
-                    hint.rule.id +
-                    ')' +
-                    colors.reset
+                `${white(
+                    `${repeatStr(indent)}${repeatStr(String(line).length + 3 + pointCol)}`
+                )}^ ${red(`${hint.message} (${hint.rule.id})`)}`
             );
         });
         return arrLogs;

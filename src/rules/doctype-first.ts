@@ -1,9 +1,13 @@
-export const doctypeFirstRule = {
+import { HTMLParser } from '../htmlparser';
+import { Reporter } from '../reporter';
+import { Rule } from './html-rule';
+
+export const doctypeFirstRule: Rule = {
     id: 'doctype-first',
     description: 'Doctype must be declared first.',
-    init: function(parser, reporter) {
-        const self = this;
-        const allEvent = function(event) {
+    init(parser: HTMLParser, reporter: Reporter): void {
+        const self: Rule = this;
+        const allEvent = (event) => {
             if (event.type === 'start' || (event.type === 'text' && /^\s*$/.test(event.raw))) {
                 return;
             }

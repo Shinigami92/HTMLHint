@@ -1,9 +1,13 @@
-export const csslintRule = {
+import { HTMLParser } from '../htmlparser';
+import { Reporter } from '../reporter';
+import { Rule, RuleConfig } from './html-rule';
+
+export const csslintRule: Rule = {
     id: 'csslint',
     description: 'Scan css with csslint.',
-    init: function(parser, reporter, options) {
-        const self = this;
-        parser.addListener('cdata', function(event) {
+    init(parser: HTMLParser, reporter: Reporter, options: RuleConfig): void {
+        const self: Rule = this;
+        parser.addListener('cdata', (event) => {
             if (event.tagName.toLowerCase() === 'style') {
                 let cssVerify;
 
@@ -18,17 +22,19 @@ export const csslintRule = {
                     const styleCol = event.col - 1;
                     try {
                         const messages = cssVerify(event.raw, options).messages;
-                        messages.forEach(function(error) {
+                        messages.forEach((error) => {
                             const line = error.line;
                             reporter[error.type === 'warning' ? 'warn' : 'error'](
-                                '[' + error.rule.id + '] ' + error.message,
+                                `[${error.rule.id}] ${error.message}`,
                                 styleLine + line,
                                 (line === 1 ? styleCol : 0) + error.col,
                                 self,
                                 error.evidence
                             );
                         });
-                    } catch (e) {}
+                    } catch (e) {
+                        //
+                    }
                 }
             }
         });

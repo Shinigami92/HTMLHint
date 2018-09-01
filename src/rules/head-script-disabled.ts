@@ -1,14 +1,18 @@
-export const headScriptDisabledRule = {
+import { HTMLParser } from '../htmlparser';
+import { Reporter } from '../reporter';
+import { Rule } from './html-rule';
+
+export const headScriptDisabledRule: Rule = {
     id: 'head-script-disabled',
     description: 'The <script> tag cannot be used in a <head> tag.',
-    init: function(parser, reporter) {
-        const self = this;
-        const reScript = /^(text\/javascript|application\/javascript)$/i;
-        let isInHead = false;
-        function onTagStart(event) {
+    init(parser: HTMLParser, reporter: Reporter): void {
+        const self: Rule = this;
+        const reScript: RegExp = /^(text\/javascript|application\/javascript)$/i;
+        let isInHead: boolean = false;
+        function onTagStart(event): void {
             const mapAttrs = parser.getMapAttrs(event.attrs);
             const type = mapAttrs.type;
-            const tagName = event.tagName.toLowerCase();
+            const tagName: string = event.tagName.toLowerCase();
             if (tagName === 'head') {
                 isInHead = true;
             }
@@ -26,7 +30,7 @@ export const headScriptDisabledRule = {
                 );
             }
         }
-        function onTagEnd(event) {
+        function onTagEnd(event): void {
             if (event.tagName.toLowerCase() === 'head') {
                 parser.removeListener('tagstart', onTagStart);
                 parser.removeListener('tagend', onTagEnd);

@@ -6,28 +6,6 @@ module.exports = function(grunt) {
     // Project configuration.
     grunt.initConfig({
         pkg: grunt.file.readJSON('package.json'),
-        babel: {
-            options: {
-                sourceMap: true,
-                presets: ['@babel/preset-env']
-            },
-            // dist: {
-            //     files: {
-            //         // 'lib/htmlhint.js': 'lib/htmlhint.js'
-            //         'lib/htmlhint.js': 'src/index.js'
-            //     }
-            // }
-            dist: {
-                files: [
-                    {
-                        expand: true,
-                        cwd: 'src/',
-                        src: ['**/*.js'],
-                        dest: 'lib/'
-                    }
-                ]
-            }
-        },
         browserify: {
             lib: {
                 files: {
@@ -42,33 +20,7 @@ module.exports = function(grunt) {
                 }
             }
         },
-        // jshint: {
-        //     browser: {
-        //         src: ['src/**/*.js'],
-        //         options: {
-        //             jshintrc: '.jshintrc-browser'
-        //         }
-        //     },
-        //     node: {
-        //         src: ['Gruntfile.js', 'test/**/*.js', 'bin/*'],
-        //         options: {
-        //             jshintrc: '.jshintrc-node'
-        //         }
-        //     }
-        // },
         clean: ['lib', 'coverage'],
-        concat: {
-            htmlhint: {
-                src: [
-                    'src/rules/*.js',
-                    'src/reporter.js',
-                    'src/htmlparser.js',
-                    'src/core.js',
-                    'src/htmlhint.js'
-                ],
-                dest: 'lib/htmlhint.js'
-            }
-        },
         exec: {
             test: {
                 command: '"./node_modules/.bin/mocha" --recursive',
@@ -80,18 +32,6 @@ module.exports = function(grunt) {
                     '"./node_modules/.bin/istanbul" cover "./node_modules/mocha/bin/_mocha" -- --recursive',
                 stdout: true,
                 stderr: true
-            }
-        },
-        uglify: {
-            htmlhint: {
-                options: {
-                    beautify: {
-                        ascii_only: true
-                    }
-                },
-                files: {
-                    'lib/htmlhint.js': ['lib/htmlhint.js']
-                }
             }
         },
         replace: {
@@ -117,17 +57,12 @@ module.exports = function(grunt) {
     });
 
     // grunt.registerTask('build', ['clean', 'concat', 'babel']);
-    grunt.registerTask('build', ['clean', 'babel']);
+    // grunt.registerTask('build', ['clean', 'babel']);
     // grunt.registerTask('build', ['clean', 'browserify:lib']);
 
-    grunt.registerTask('dev', ['build', 'exec:test']);
+    // grunt.registerTask('dev', ['build', 'exec:test']);
 
-    grunt.registerTask('default', [
-        'build',
-        'exec:cover',
-        'uglify',
-        'replace:version'
-    ]);
+    grunt.registerTask('default', ['exec:cover', 'replace:version']);
 
     function dateFormat(date, format) {
         if (format === undefined) {
@@ -135,13 +70,13 @@ module.exports = function(grunt) {
             date = new Date();
         }
         var map = {
-            "M": date.getMonth() + 1, // Monat
-            "d": date.getDate(), // Tag
-            "h": date.getHours(), // Hour
-            "m": date.getMinutes(), // Minute
-            "s": date.getSeconds(), // Second
-            "q": Math.floor((date.getMonth() + 3) / 3), // Quarter
-            "S": date.getMilliseconds() // Millisecond
+            M: date.getMonth() + 1, // Monat
+            d: date.getDate(), // Tag
+            h: date.getHours(), // Hour
+            m: date.getMinutes(), // Minute
+            s: date.getSeconds(), // Second
+            q: Math.floor((date.getMonth() + 3) / 3), // Quarter
+            S: date.getMilliseconds() // Millisecond
         };
         format = format.replace(/([yMdhmsqS])(\1)*/g, function(all, t) {
             var v = map[t];

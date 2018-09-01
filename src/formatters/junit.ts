@@ -1,10 +1,15 @@
-import xml = require('xml');
+import xml from 'xml';
+import { HTMLHint } from '../core';
+import { Formatter, FormatterCallback } from '../formatter';
 
-const junitFormatter = function(formatter, HTMLHint) {
-    formatter.on('end', function(event) {
+export const junitFormatter: FormatterCallback = (
+    formatter: Formatter,
+    HTMLHint?: HTMLHint
+): void => {
+    formatter.on('end', (event) => {
         const arrTestcase = [];
         const arrAllMessages = event.arrAllMessages;
-        arrAllMessages.forEach(function(fileInfo) {
+        arrAllMessages.forEach((fileInfo) => {
             const arrMessages = fileInfo.messages;
             const arrLogs = HTMLHint.format(arrMessages);
             arrTestcase.push({
@@ -18,7 +23,7 @@ const junitFormatter = function(formatter, HTMLHint) {
                     {
                         failure: {
                             _attr: {
-                                message: 'Found ' + arrMessages.length + ' errors'
+                                message: `Found ${arrMessages.length} errors`
                             },
                             _cdata: arrLogs.join('\r\n')
                         }
@@ -42,12 +47,7 @@ const junitFormatter = function(formatter, HTMLHint) {
                 }
             ]
         };
-        console.log(
-            xml(objXml, {
-                declaration: true,
-                indent: '    '
-            })
-        );
+        console.log(xml(objXml, { declaration: true, indent: '    ' }));
     });
 };
-module.exports = junitFormatter;
+export default junitFormatter;

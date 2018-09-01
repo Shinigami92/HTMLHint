@@ -1,30 +1,31 @@
 #!/usr/bin/env node
 
-import program = require('commander');
-import fs = require('fs');
-import path = require('path');
-import stripJsonComments = require('strip-json-comments');
-import async = require('async');
-import glob = require('glob');
-import parseGlob = require('parse-glob');
-import request = require('request');
+import { AsyncQueue, queue, series } from 'async';
+import program from 'commander';
+import { existsSync, readFileSync, statSync } from 'fs';
+import { sync } from 'glob';
+import glob from 'glob';
+import parseGlob from 'parse-glob';
+import { dirname, resolve, sep } from 'path';
+import { get, Response } from 'request';
+import stripJsonComments from 'strip-json-comments';
+import { URL } from 'url';
 
-const HTMLHint = require('./htmlhint').HTMLHint;
-import formatter = require('./formatter');
-import pkg = require('../package.json');
-
-require('colors');
+import formatter from './formatter';
+import { HTMLHint } from './htmlhint';
+import { ReporterMessage } from './reporter';
+import { Rule, RuleConfigMap, RuleRegistry } from './rules/html-rule';
 
 function map(val) {
     const objMap = {};
-    val.split(',').forEach(function(item) {
+    val.split(',').forEach((item) => {
         const arrItem = item.split(/\s*=\s*/);
         objMap[arrItem[0]] = arrItem[1] ? arrItem[1] : true;
     });
     return objMap;
 }
 
-program.on('--help', function() {
+program.on('--help', () => {
     console.log('  Examples:');
     console.log('');
     console.log('    htmlhint');
@@ -42,7 +43,11 @@ program.on('--help', function() {
     console.log('');
 });
 
-const arrSupportedFormatters = formatter.getSupported();
+const arrSupportedFormatters: string[] = formatter.getSupported();
+
+const pkgPath: string = resolve(__dirname, '../package.json');
+const pkgJson: string = readFileSync(pkgPath, 'utf-8');
+const pkg: { version: string } = JSON.parse(pkgJson);
 
 program
     .version(pkg.version)
@@ -52,7 +57,7 @@ program
     .option('-r, --rules <ruleid, ruleid=value ...>', 'set all of the rules available', map)
     .option('-R, --rulesdir <file|folder>', 'load custom rules from file or folder')
     .option(
-        '-f, --format <' + arrSupportedFormatters.join('|') + '>',
+        `-f, --format <${arrSupportedFormatters.join('|')}>`,
         'output messages as custom format'
     )
     .option('-i, --ignore <pattern, pattern ...>', 'add pattern to exclude matches')
@@ -65,7 +70,7 @@ if (program.list) {
     process.exit(0);
 }
 
-const arrTargets = program.args;
+const arrTargets: string[] = program.args;
 if (arrTargets.length === 0) {
     arrTargets.push('./');
 }
@@ -74,7 +79,8 @@ if (arrTargets.length === 0) {
 formatter.init(HTMLHint, {
     nocolor: program.nocolor
 });
-const format = program.format || 'default';
+
+const format: string = program.format || 'default';
 if (format) {
     formatter.setFormat(format);
 }
@@ -82,28 +88,30 @@ if (format) {
 hintTargets(arrTargets, {
     rulesdir: program.rulesdir,
     ruleset: program.rules,
-    formatter: formatter,
+    formatter,
     ignore: program.ignore
 });
 
 // list all rules
-function listRules() {
-    const rules = HTMLHint.rules;
-    let rule;
+function listRules(): void {
+    const rules: RuleRegistry = HTMLHint.rules;
+    let rule: Rule;
     console.log('     All rules:');
     console.log(' ==================================================');
     for (const id in rules) {
-        rule = rules[id];
-        console.log('     %s : %s', rule.id.bold, rule.description);
+        if (rules.hasOwnProperty(id)) {
+            rule = rules[id];
+            console.log('     %s : %s', rule.id.bold, rule.description);
+        }
     }
 }
 
-function hintTargets(arrTargets, options) {
+function hintTargets(arrTargets: string[], options): void {
     let arrAllMessages = [];
-    let allFileCount = 0;
-    let allHintFileCount = 0;
-    let allHintCount = 0;
-    const startTime = new Date().getTime();
+    let allFileCount: number = 0;
+    let allHintFileCount: number = 0;
+    let allHintCount: number = 0;
+    const startTime: number = new Date().getTime();
 
     const formatter = options.formatter;
 
@@ -117,9 +125,9 @@ function hintTargets(arrTargets, options) {
     formatter.emit('start');
 
     const arrTasks = [];
-    arrTargets.forEach(function(target) {
-        arrTasks.push(function(next) {
-            hintAllFiles(target, options, function(result) {
+    arrTargets.forEach((target) => {
+        arrTasks.push((next) => {
+            hintAllFiles(target, options, (result) => {
                 allFileCount += result.targetFileCount;
                 allHintFileCount += result.targetHintFileCount;
                 allHintCount += result.targetHintCount;
@@ -128,14 +136,14 @@ function hintTargets(arrTargets, options) {
             });
         });
     });
-    async.series(arrTasks, function() {
+    series(arrTasks, () => {
         // end hint
-        const spendTime = new Date().getTime() - startTime;
+        const spendTime: number = new Date().getTime() - startTime;
         formatter.emit('end', {
-            arrAllMessages: arrAllMessages,
-            allFileCount: allFileCount,
-            allHintFileCount: allHintFileCount,
-            allHintCount: allHintCount,
+            arrAllMessages,
+            allFileCount,
+            allHintFileCount,
+            allHintCount,
             time: spendTime
         });
         process.exit(!program.warn && allHintCount > 0 ? 1 : 0);
@@ -143,21 +151,19 @@ function hintTargets(arrTargets, options) {
 }
 
 // load custom rles
-function loadCustomRules(rulesdir) {
+function loadCustomRules(rulesdir): void {
     rulesdir = rulesdir.replace(/\\/g, '/');
-    if (fs.existsSync(rulesdir)) {
-        if (fs.statSync(rulesdir).isDirectory()) {
+    if (existsSync(rulesdir)) {
+        if (statSync(rulesdir).isDirectory()) {
             rulesdir += /\/$/.test(rulesdir) ? '' : '/';
             rulesdir += '**/*.js';
-            const arrFiles = glob.sync(rulesdir, {
+            const arrFiles: string[] = sync(rulesdir, {
                 dot: false,
                 nodir: true,
                 strict: false,
                 silent: true
             });
-            arrFiles.forEach(function(file) {
-                loadRule(file);
-            });
+            arrFiles.forEach(loadRule);
         } else {
             loadRule(rulesdir);
         }
@@ -165,82 +171,82 @@ function loadCustomRules(rulesdir) {
 }
 
 // load rule
-function loadRule(filepath) {
-    filepath = path.resolve(filepath);
+function loadRule(filepath: string): void {
+    filepath = resolve(filepath);
     try {
         const module = require(filepath);
         module(HTMLHint);
-    } catch (e) {}
+    } catch (e) {
+        //
+    }
 }
 
 // hint all files
-function hintAllFiles(target, options, onFinised) {
+function hintAllFiles(target, options, onFinised): void {
     const globInfo = getGlobInfo(target);
     globInfo.ignore = options.ignore;
 
     const formatter = options.formatter;
 
     // hint result
-    let targetFileCount = 0;
-    let targetHintFileCount = 0;
-    let targetHintCount = 0;
+    let targetFileCount: number = 0;
+    let targetHintFileCount: number = 0;
+    let targetHintCount: number = 0;
     const arrTargetMessages = [];
 
     // init ruleset
-    let ruleset = options.ruleset;
+    let ruleset: RuleConfigMap | undefined = options.ruleset;
     if (ruleset === undefined) {
         ruleset = getConfig(program.config, globInfo.base, formatter);
     }
 
     // hint queue
-    const hintQueue = async.queue(function(filepath, next) {
-        const startTime = new Date().getTime();
-        if (filepath === 'stdin') {
-            hintStdin(ruleset, hintNext);
-        } else if (/^https?:\/\//.test(filepath)) {
-            hintUrl(filepath, ruleset, hintNext);
-        } else {
-            const messages = hintFile(filepath, ruleset);
-            hintNext(messages);
-        }
-        function hintNext(messages) {
-            const spendTime = new Date().getTime() - startTime;
-            const hintCount = messages.length;
-            if (hintCount > 0) {
-                formatter.emit('file', {
-                    file: filepath,
-                    messages: messages,
-                    time: spendTime
-                });
-                arrTargetMessages.push({
-                    file: filepath,
-                    messages: messages,
-                    time: spendTime
-                });
-                targetHintFileCount++;
-                targetHintCount += hintCount;
+    const hintQueue: AsyncQueue<string> = queue(
+        (filepath: string, next: (...args: any[]) => void) => {
+            const startTime: number = new Date().getTime();
+            function hintNext(messages: ReporterMessage[]): void {
+                const spendTime: number = new Date().getTime() - startTime;
+                const hintCount: number = messages.length;
+                if (hintCount > 0) {
+                    formatter.emit('file', {
+                        file: filepath,
+                        messages,
+                        time: spendTime
+                    });
+                    arrTargetMessages.push({
+                        file: filepath,
+                        messages,
+                        time: spendTime
+                    });
+                    targetHintFileCount++;
+                    targetHintCount += hintCount;
+                }
+                targetFileCount++;
+                setImmediate(next);
             }
-            targetFileCount++;
-            setImmediate(next);
-        }
-    }, 10);
+            if (filepath === 'stdin') {
+                hintStdin(ruleset, hintNext);
+            } else if (/^https?:\/\//.test(filepath)) {
+                hintUrl(filepath, ruleset, hintNext);
+            } else {
+                const messages: ReporterMessage[] = hintFile(filepath, ruleset);
+                hintNext(messages);
+            }
+        },
+        10
+    );
     // start hint
-    let isWalkDone = false;
-    let isHintDone = true;
-    hintQueue.drain = function() {
+    let isWalkDone: boolean = false;
+    let isHintDone: boolean = true;
+    function checkAllHinted(): void {
+        if (isWalkDone && isHintDone) {
+            onFinised({ targetFileCount, targetHintFileCount, targetHintCount, arrTargetMessages });
+        }
+    }
+    hintQueue.drain = (): void => {
         isHintDone = true;
         checkAllHinted();
     };
-    function checkAllHinted() {
-        if (isWalkDone && isHintDone) {
-            onFinised({
-                targetFileCount: targetFileCount,
-                targetHintFileCount: targetHintFileCount,
-                targetHintCount: targetHintCount,
-                arrTargetMessages: arrTargetMessages
-            });
-        }
-    }
     if (target === 'stdin') {
         isWalkDone = true;
         hintQueue.push(target);
@@ -250,11 +256,11 @@ function hintAllFiles(target, options, onFinised) {
     } else {
         walkPath(
             globInfo,
-            function(filepath) {
+            (filepath: string) => {
                 isHintDone = false;
                 hintQueue.push(filepath);
             },
-            function() {
+            () => {
                 isWalkDone = true;
                 checkAllHinted();
             }
@@ -266,77 +272,75 @@ function hintAllFiles(target, options, onFinised) {
 function getGlobInfo(target) {
     // fix windows sep
     target = target.replace(/\\/g, '/');
-    const globInfo = parseGlob(target);
-    let base = path.resolve(globInfo.base);
+    const globInfo: parseGlob.Result = parseGlob(target);
+    let base: string = resolve(globInfo.base);
     base += /\/$/.test(base) ? '' : '/';
-    let pattern = globInfo.glob;
+    let pattern: string = globInfo.glob;
     const globPath = globInfo.path;
-    const defaultGlob = '*.{htm,html}';
+    const defaultGlob: '*.{htm,html}' = '*.{htm,html}';
     if (globInfo.is.glob === true) {
         // no basename
         if (globPath.basename === '') {
             pattern += defaultGlob;
         }
     } else {
-        // no basename
         if (globPath.basename === '') {
-            pattern += '**/' + defaultGlob;
-        }
-        // detect directory
-        else if (fs.existsSync(target) && fs.statSync(target).isDirectory()) {
-            base += globPath.basename + '/';
-            pattern = '**/' + defaultGlob;
+            // no basename
+            pattern += `**/${defaultGlob}`;
+        } else if (existsSync(target) && statSync(target).isDirectory()) {
+            // detect directory
+            base += `${globPath.basename}/`;
+            pattern = `**/${defaultGlob}`;
         }
     }
-    return {
-        base: base,
-        pattern: pattern
-    };
+    return { base, pattern };
 }
 
 // search and load config
-function getConfig(configPath, base, formatter) {
-    if (configPath === undefined && fs.existsSync(base)) {
+function getConfig(configPath, base: string, formatter): RuleConfigMap | undefined {
+    if (configPath === undefined && existsSync(base)) {
         // find default config file in parent directory
-        if (fs.statSync(base).isDirectory() === false) {
-            base = path.dirname(base);
+        if (statSync(base).isDirectory() === false) {
+            base = dirname(base);
         }
         while (base) {
-            const tmpConfigFile = path.resolve(base + path.sep, '.htmlhintrc');
-            if (fs.existsSync(tmpConfigFile)) {
+            const tmpConfigFile: string = resolve(base + sep, '.htmlhintrc');
+            if (existsSync(tmpConfigFile)) {
                 configPath = tmpConfigFile;
                 break;
             }
-            base = base.substring(0, base.lastIndexOf(path.sep));
+            base = base.substring(0, base.lastIndexOf(sep));
         }
     }
 
-    if (fs.existsSync(configPath)) {
-        const config = fs.readFileSync(configPath, 'utf-8');
-        let ruleset;
+    if (existsSync(configPath)) {
+        const config: string = readFileSync(configPath, 'utf-8');
+        let ruleset: RuleConfigMap | undefined;
         try {
             ruleset = JSON.parse(stripJsonComments(config));
             formatter.emit('config', {
-                ruleset: ruleset,
-                configPath: configPath
+                ruleset,
+                configPath
             });
-        } catch (e) {}
+        } catch (e) {
+            //
+        }
         return ruleset;
     }
 }
 
 // walk path
 function walkPath(globInfo, callback, onFinish) {
-    let base = globInfo.base;
-    const pattern = globInfo.pattern;
+    let base: string = globInfo.base;
+    const pattern: string = globInfo.pattern;
     const ignore = globInfo.ignore;
     const arrIgnores = ['**/node_modules/**'];
     if (ignore) {
-        ignore.split(',').forEach(function(pattern) {
+        ignore.split(',').forEach((pattern) => {
             arrIgnores.push(pattern);
         });
     }
-    const walk = glob(
+    const walk: void = glob(
         pattern,
         {
             cwd: base,
@@ -346,45 +350,54 @@ function walkPath(globInfo, callback, onFinish) {
             strict: false,
             silent: true
         },
-        function() {
+        () => {
             onFinish();
         }
     );
-    walk.on('match', function(file) {
+    walk.on('match', (file) => {
         base = base.replace(/^.\//, '');
         callback(base + file);
     });
 }
 
 // hint file
-function hintFile(filepath, ruleset) {
-    let content = '';
+function hintFile(
+    filepath: string | number | Buffer | URL,
+    ruleset?: RuleConfigMap
+): ReporterMessage[] {
+    let content: string = '';
     try {
-        content = fs.readFileSync(filepath, 'utf-8');
-    } catch (e) {}
+        content = readFileSync(filepath, 'utf-8');
+    } catch (e) {
+        //
+    }
     return HTMLHint.verify(content, ruleset);
 }
 
 // hint stdin
-function hintStdin(ruleset, callback) {
+function hintStdin(ruleset: RuleConfigMap, callback: (messages: ReporterMessage[]) => void): void {
     process.stdin.setEncoding('utf8');
     const buffers = [];
-    process.stdin.on('data', function(text) {
+    process.stdin.on('data', (text) => {
         buffers.push(text);
     });
 
-    process.stdin.on('end', function() {
-        const content = buffers.join('');
-        const messages = HTMLHint.verify(content, ruleset);
+    process.stdin.on('end', () => {
+        const content: string = buffers.join('');
+        const messages: ReporterMessage[] = HTMLHint.verify(content, ruleset);
         callback(messages);
     });
 }
 
 // hint url
-function hintUrl(url, ruleset, callback) {
-    request.get(url, function(error, response, body) {
-        if (!error && response.statusCode == 200) {
-            const messages = HTMLHint.verify(body, ruleset);
+function hintUrl(
+    url: string,
+    ruleset: RuleConfigMap,
+    callback: (messages: ReporterMessage[]) => void
+): void {
+    get(url, (error: any, response: Response, body: any) => {
+        if (!error && response.statusCode === 200) {
+            const messages: ReporterMessage[] = HTMLHint.verify(body, ruleset);
             callback(messages);
         } else {
             callback([]);

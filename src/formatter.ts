@@ -1,57 +1,78 @@
-import path from 'path';
-import events from 'events';
-import glob from 'glob';
-path.parse = path.parse || require('path-parse');
+import { EventEmitter } from 'events';
+import { sync } from 'glob';
+import { parse, ParsedPath, resolve } from 'path';
+import { HTMLHint } from './core';
 
-let HTMLHint;
-let options;
+export interface FormatterOption {
+    nocolor: any;
+}
 
-// load formatters
-const mapFormatters = loadFormatters();
-const arrSupportedFormatters = [];
-for (const formatterName in mapFormatters) {
-    if (formatterName !== 'default') {
-        arrSupportedFormatters.push(formatterName);
+export type FormatterCallback = (
+    formatter: Formatter,
+    HTMLHint?: HTMLHint,
+    options?: FormatterOption
+) => void;
+
+export interface FormatterRegistry {
+    [formatterFileName: string]: FormatterCallback;
+}
+
+export class Formatter extends EventEmitter {
+    private HTMLHint?: HTMLHint;
+    private options?: FormatterOption;
+    private arrSupportedFormatters: string[] = [];
+    private mapFormatters: FormatterRegistry;
+
+    constructor() {
+        super();
+        this.mapFormatters = this.loadFormatters();
+        // load formatters
+        for (const formatterName in this.mapFormatters) {
+            if (formatterName !== 'default') {
+                this.arrSupportedFormatters.push(formatterName);
+            }
+        }
+    }
+
+    public getSupported(): string[] {
+        return this.arrSupportedFormatters;
+    }
+
+    public init(tmpHTMLHint: HTMLHint, tmpOptions: FormatterOption): void {
+        this.HTMLHint = tmpHTMLHint;
+        this.options = tmpOptions;
+    }
+
+    public setFormat(format: string): void {
+        const idx: number = Object.keys(this.mapFormatters).indexOf(format);
+        if (idx === -1) {
+            console.log(
+                'No supported formatter, supported formatters: %s'.red,
+                this.arrSupportedFormatters.join(', ')
+            );
+            process.exit(1);
+        }
+        const formatHandel: FormatterCallback = this.mapFormatters[format];
+        formatHandel(this, this.HTMLHint, this.options);
+    }
+
+    // load all formatters
+    private loadFormatters(): FormatterRegistry {
+        const arrFiles: string[] = sync('./formatters/*.js', {
+            cwd: __dirname,
+            dot: false,
+            nodir: true,
+            strict: false,
+            silent: true
+        });
+        const mapFormatters: FormatterRegistry = {};
+        arrFiles.forEach((file: string) => {
+            const fileInfo: ParsedPath = parse(file);
+            const formatterPath: string = resolve(__dirname, file);
+            mapFormatters[fileInfo.name] = require(formatterPath).default;
+        });
+        return mapFormatters;
     }
 }
 
-// load all formatters
-function loadFormatters() {
-    const arrFiles = glob.sync('./formatters/*.js', {
-        cwd: __dirname,
-        dot: false,
-        nodir: true,
-        strict: false,
-        silent: true
-    });
-    const mapFormatters = {};
-    arrFiles.forEach(function(file) {
-        const fileInfo = path.parse(file);
-        const formatterPath = path.resolve(__dirname, file);
-        mapFormatters[fileInfo.name] = require(formatterPath);
-    });
-    return mapFormatters;
-}
-
-const formatter = new events.EventEmitter();
-formatter.getSupported = function() {
-    return arrSupportedFormatters;
-};
-formatter.init = function(tmpHTMLHint, tmpOptions) {
-    HTMLHint = tmpHTMLHint;
-    options = tmpOptions;
-};
-formatter.setFormat = function(format) {
-    const formatHandel = mapFormatters[format];
-    if (formatHandel === undefined) {
-        console.log(
-            'No supported formatter, supported formatters: %s'.red,
-            arrSupportedFormatters.join(', ')
-        );
-        process.exit(1);
-    } else {
-        formatHandel(formatter, HTMLHint, options);
-    }
-};
-
-module.exports = formatter;
+export default new Formatter();

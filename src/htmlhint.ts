@@ -1,6 +1,6 @@
 import { HTMLHint } from './core';
 
-const HTMLHintInstance = new HTMLHint();
+const HTMLHintInstance: HTMLHint = new HTMLHint();
 
 export { HTMLHintInstance as HTMLHint };
 export { HTMLParser } from './htmlparser';

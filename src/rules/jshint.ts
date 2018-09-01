@@ -1,8 +1,12 @@
-export const jshintRule = {
+import { HTMLParser } from '../htmlparser';
+import { Reporter } from '../reporter';
+import { Rule, RuleConfig } from './html-rule';
+
+export const jshintRule: Rule = {
     id: 'jshint',
     description: 'Scan script with jshint.',
-    init: function(parser, reporter, options) {
-        const self = this;
+    init(parser: HTMLParser, reporter: Reporter, options: RuleConfig): void {
+        const self: Rule = this;
         parser.addListener('cdata', function(event) {
             if (event.tagName.toLowerCase() === 'script') {
                 const mapAttrs = parser.getMapAttrs(event.attrs);
@@ -31,7 +35,7 @@ export const jshintRule = {
                     try {
                         const status = jsVerify(code, options);
                         if (status === false) {
-                            jsVerify.errors.forEach(function(error) {
+                            jsVerify.errors.forEach((error) => {
                                 const line = error.line;
                                 reporter.warn(
                                     error.reason,
@@ -42,7 +46,9 @@ export const jshintRule = {
                                 );
                             });
                         }
-                    } catch (e) {}
+                    } catch (e) {
+                        //
+                    }
                 }
             }
         });

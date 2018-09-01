@@ -1,6 +1,8 @@
-const jsonFormatter = function(formatter) {
-    formatter.on('end', function(event) {
+import { Formatter, FormatterCallback } from '../formatter';
+
+export const jsonFormatter: FormatterCallback = (formatter: Formatter): void => {
+    formatter.on('end', (event) => {
         console.log(JSON.stringify(event.arrAllMessages));
     });
 };
-module.exports = jsonFormatter;
+export default jsonFormatter;

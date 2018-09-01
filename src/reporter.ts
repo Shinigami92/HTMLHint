@@ -1,31 +1,61 @@
+import { Rule, RuleConfigMap } from './rules/html-rule';
+
+export type ReportMessageType = 'error' | 'warning' | 'info';
+
+export interface ReporterMessage {
+    type: ReportMessageType;
+    message: string;
+    raw: any;
+    evidence: string;
+    line: number;
+    col: number;
+    rule: {
+        id: string;
+        description: string;
+        link: string;
+    };
+}
+
 export class Reporter {
-    constructor(html, ruleset) {
+    public html: string;
+    public lines: string[];
+    public brLen: number;
+    public messages: ReporterMessage[] = [];
+    public ruleset: RuleConfigMap;
+
+    constructor(html: string, ruleset: RuleConfigMap) {
         this.html = html;
         this.lines = html.split(/\r?\n/);
-        const match = html.match(/\r?\n/);
+        const match: RegExpMatchArray | null = html.match(/\r?\n/);
         this.brLen = match !== null ? match[0].length : 0;
         this.ruleset = ruleset;
-        this.messages = [];
     }
 
-    error(message, line, col, rule, raw) {
+    public error(message: string, line: number, col: number, rule: Rule, raw): void {
         this.report('error', message, line, col, rule, raw);
     }
 
-    warn(message, line, col, rule, raw) {
+    public warn(message: string, line: number, col: number, rule: Rule, raw): void {
         this.report('warning', message, line, col, rule, raw);
     }
 
-    info(message, line, col, rule, raw) {
+    public info(message: string, line: number, col: number, rule: Rule, raw): void {
         this.report('info', message, line, col, rule, raw);
     }
 
-    report(type, message, line, col, rule, raw) {
-        const lines = this.lines;
-        const brLen = this.brLen;
-        let evidence;
-        let evidenceLen;
-        for (let i = line - 1, lineCount = lines.length; i < lineCount; i++) {
+    public report(
+        type: ReportMessageType,
+        message: string,
+        line: number,
+        col: number,
+        rule: Rule,
+        raw
+    ): void {
+        const lines: string[] = this.lines;
+        const brLen: number = this.brLen;
+        let evidence: string = '';
+        let evidenceLen: number;
+        for (let i: number = line - 1, lineCount: number = lines.length; i < lineCount; i++) {
             evidence = lines[i];
             evidenceLen = evidence.length;
             if (col > evidenceLen && line < lineCount) {
@@ -39,16 +69,16 @@ export class Reporter {
             }
         }
         this.messages.push({
-            type: type,
-            message: message,
-            raw: raw,
-            evidence: evidence,
-            line: line,
-            col: col,
+            type,
+            message,
+            raw,
+            evidence,
+            line,
+            col,
             rule: {
                 id: rule.id,
                 description: rule.description,
-                link: 'https://github.com/thedaviddias/HTMLHint/wiki/' + rule.id
+                link: `https://github.com/thedaviddias/HTMLHint/wiki/${rule.id}`
             }
         });
     }

@@ -1,27 +1,25 @@
-export class HTMLParser {
-    constructor() {
-        this._listeners = {};
-        this._mapCdataTags = this.makeMap('script,style');
-        this._arrBlocks = [];
-        this.lastEvent = null;
-    }
+export interface FixPosResult {
+    line: number;
+    col: number;
+}
 
-    makeMap(str) {
-        const obj = {};
-        const items = str.split(',');
-        for (let i = 0; i < items.length; i++) {
-            obj[items[i]] = true;
-        }
-        return obj;
-    }
+export class HTMLParser {
+    private _listeners = {};
+    private _mapCdataTags: {
+        [key: string]: boolean;
+    } = this.makeMap('script,style');
+    private _arrBlocks = [];
+    private lastEvent = null;
 
     // parse html code
-    parse(html) {
-        const mapCdataTags = this._mapCdataTags;
+    public parse(html: string): void {
+        const mapCdataTags: {
+            [key: string]: boolean;
+        } = this._mapCdataTags;
 
-        const regTag = /<(?:\/([^\s>]+)\s*|!--([\s\S]*?)--|!([^>]*?)|([\w\-:]+)((?:\s+[^\s"'>/=\x00-\x0F\x7F\x80-\x9F]+(?:\s*=\s*(?:"[^"]*"|'[^']*'|[^\s"'>]*))?)*?)\s*(\/?))>/g;
-        const regAttr = /\s*([^\s"'>/=\x00-\x0F\x7F\x80-\x9F]+)(?:\s*=\s*(?:(")([^"]*)"|(')([^']*)'|([^\s"'>]*)))?/g;
-        const regLine = /\r?\n/g;
+        const regTag: RegExp = /<(?:\/([^\s>]+)\s*|!--([\s\S]*?)--|!([^>]*?)|([\w\-:]+)((?:\s+[^\s"'>/=\x00-\x0F\x7F\x80-\x9F]+(?:\s*=\s*(?:"[^"]*"|'[^']*'|[^\s"'>]*))?)*?)\s*(\/?))>/g;
+        const regAttr: RegExp = /\s*([^\s"'>/=\x00-\x0F\x7F\x80-\x9F]+)(?:\s*=\s*(?:(")([^"]*)"|(')([^']*)'|([^\s"'>]*)))?/g;
+        const regLine: RegExp = /\r?\n/g;
 
         let match;
         let matchIndex;
@@ -33,13 +31,13 @@ export class HTMLParser {
         let arrCDATA;
         let lastCDATAIndex = 0;
         let text;
-        let lastLineIndex = 0;
-        let line = 1;
+        let lastLineIndex: number = 0;
+        let line: number = 1;
         const arrBlocks = this._arrBlocks;
 
         //存储区块
-        const saveBlock = (type, raw, pos, data) => {
-            const col = pos - lastLineIndex + 1;
+        const saveBlock = (type: string, raw, pos: number, data) => {
+            const col: number = pos - lastLineIndex + 1;
             if (data === undefined) {
                 data = {};
             }
@@ -55,11 +53,7 @@ export class HTMLParser {
             }
         };
 
-        this.fire('start', {
-            pos: 0,
-            line: 1,
-            col: 1
-        });
+        this.fire('start', { pos: 0, line: 1, col: 1 });
 
         while ((match = regTag.exec(html))) {
             matchIndex = match.index;
@@ -120,9 +114,9 @@ export class HTMLParser {
                                     ? attrMatch[6]
                                     : '';
                         arrAttrs.push({
-                            name: name,
-                            value: value,
-                            quote: quote,
+                            name,
+                            value,
+                            quote,
                             index: attrMatch.index,
                             raw: attrMatch[0]
                         });
@@ -130,7 +124,7 @@ export class HTMLParser {
                     }
                     if (attrMatchCount === attrs.length) {
                         saveBlock('tagstart', match[0], matchIndex, {
-                            tagName: tagName,
+                            tagName,
                             attrs: arrAttrs,
                             close: match[6]
                         });
@@ -162,17 +156,17 @@ export class HTMLParser {
 
         this.fire('end', {
             pos: lastIndex,
-            line: line,
+            line,
             col: html.length - lastLineIndex + 1
         });
     }
 
     // add event
-    addListener(types, listener) {
+    public addListener(types, listener): void {
         const _listeners = this._listeners;
-        const arrTypes = types.split(/[,\s]/);
-        let type;
-        for (let i = 0, l = arrTypes.length; i < l; i++) {
+        const arrTypes: string[] = types.split(/[,\s]/);
+        let type: string;
+        for (let i: number = 0, l: number = arrTypes.length; i < l; i++) {
             type = arrTypes[i];
             if (_listeners[type] === undefined) {
                 _listeners[type] = [];
@@ -181,8 +175,61 @@ export class HTMLParser {
         }
     }
 
+    // remove event
+    public removeListener(type, listener): void {
+        const listenersType = this._listeners[type];
+        if (listenersType !== undefined) {
+            for (let i: number = 0, l: number = listenersType.length; i < l; i++) {
+                if (listenersType[i] === listener) {
+                    listenersType.splice(i, 1);
+                    break;
+                }
+            }
+        }
+    }
+
+    //fix pos if event.raw have \n
+    public fixPos(event, index: number): FixPosResult {
+        const text: string = event.raw.substr(0, index);
+        const arrLines: string[] = text.split(/\r?\n/);
+        const lineCount: number = arrLines.length - 1;
+        let line: number = event.line;
+        let col: number;
+        if (lineCount > 0) {
+            line += lineCount;
+            col = arrLines[lineCount].length + 1;
+        } else {
+            col = event.col + index;
+        }
+        return { line, col };
+    }
+
+    // covert array type of attrs to map
+    public getMapAttrs(arrAttrs) {
+        const mapAttrs = {};
+        let attr;
+        for (let i: number = 0, l: number = arrAttrs.length; i < l; i++) {
+            attr = arrAttrs[i];
+            mapAttrs[attr.name] = attr.value;
+        }
+        return mapAttrs;
+    }
+
+    public makeMap(
+        str: string
+    ): {
+        [key: string]: boolean | undefined;
+    } {
+        const obj: { [key: string]: boolean } = {};
+        const items: string[] = str.split(',');
+        for (let i: number = 0; i < items.length; i++) {
+            obj[items[i]] = true;
+        }
+        return obj;
+    }
+
     // fire event
-    fire(type, data) {
+    private fire(type: string, data): void {
         if (data === undefined) {
             data = {};
         }
@@ -202,51 +249,8 @@ export class HTMLParser {
             data.lastEvent = lastEvent;
         }
         this.lastEvent = data;
-        for (let i = 0, l = listeners.length; i < l; i++) {
+        for (let i: number = 0, l: number = listeners.length; i < l; i++) {
             listeners[i].call(this, data);
         }
-    }
-
-    // remove event
-    removeListener(type, listener) {
-        const listenersType = this._listeners[type];
-        if (listenersType !== undefined) {
-            for (let i = 0, l = listenersType.length; i < l; i++) {
-                if (listenersType[i] === listener) {
-                    listenersType.splice(i, 1);
-                    break;
-                }
-            }
-        }
-    }
-
-    //fix pos if event.raw have \n
-    fixPos(event, index) {
-        const text = event.raw.substr(0, index);
-        const arrLines = text.split(/\r?\n/);
-        const lineCount = arrLines.length - 1;
-        let line = event.line;
-        let col;
-        if (lineCount > 0) {
-            line += lineCount;
-            col = arrLines[lineCount].length + 1;
-        } else {
-            col = event.col + index;
-        }
-        return {
-            line: line,
-            col: col
-        };
-    }
-
-    // covert array type of attrs to map
-    getMapAttrs(arrAttrs) {
-        const mapAttrs = {};
-        let attr;
-        for (let i = 0, l = arrAttrs.length; i < l; i++) {
-            attr = arrAttrs[i];
-            mapAttrs[attr.name] = attr.value;
-        }
-        return mapAttrs;
     }
 }
