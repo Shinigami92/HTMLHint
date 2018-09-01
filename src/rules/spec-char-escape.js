@@ -1,16 +1,24 @@
-HTMLHint.addRule({
+export const specCharEscapeRule = {
     id: 'spec-char-escape',
     description: 'Special characters must be escaped.',
-    init: function(parser, reporter){
-        var self = this;
-        parser.addListener('text', function(event){
-            var raw = event.raw,
-                reSpecChar = /[<>]/g,
-                match;
-            while((match = reSpecChar.exec(raw))){
-                var fixedPos = parser.fixPos(event, match.index);
-                reporter.error('Special characters must be escaped : [ '+match[0]+' ].', fixedPos.line, fixedPos.col, self, event.raw);
+    init: function(parser, reporter) {
+        const self = this;
+        parser.addListener('text', function(event) {
+            const raw = event.raw;
+            const reSpecChar = /[<>]/g;
+            let match;
+            while ((match = reSpecChar.exec(raw))) {
+                const fixedPos = parser.fixPos(event, match.index);
+                reporter.error(
+                    'Special characters must be escaped : [ ' +
+                        match[0] +
+                        ' ].',
+                    fixedPos.line,
+                    fixedPos.col,
+                    self,
+                    event.raw
+                );
             }
         });
     }
-});
+};

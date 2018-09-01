@@ -1,45 +1,51 @@
-HTMLHint.addRule({
+export const jshintRule = {
     id: 'jshint',
     description: 'Scan script with jshint.',
-    init: function(parser, reporter, options){
-        var self = this;
-        parser.addListener('cdata', function(event){
-            if(event.tagName.toLowerCase() === 'script'){
-
-                var mapAttrs = parser.getMapAttrs(event.attrs),
-                    type = mapAttrs.type;
+    init: function(parser, reporter, options) {
+        const self = this;
+        parser.addListener('cdata', function(event) {
+            if (event.tagName.toLowerCase() === 'script') {
+                const mapAttrs = parser.getMapAttrs(event.attrs);
+                const type = mapAttrs.type;
 
                 // Only scan internal javascript
-                if(mapAttrs.src !== undefined || (type && /^(text\/javascript)$/i.test(type) === false)){
+                if (
+                    mapAttrs.src !== undefined ||
+                    (type && /^(text\/javascript)$/i.test(type) === false)
+                ) {
                     return;
                 }
 
-                var jsVerify;
+                let jsVerify;
 
-                if(typeof exports === 'object' && require){
+                if (typeof exports === 'object' && require) {
                     jsVerify = require('jshint').JSHINT;
-                }
-                else{
+                } else {
                     jsVerify = JSHINT;
                 }
 
-                if(options !== undefined){
-                    var styleLine = event.line - 1,
-                        styleCol = event.col - 1;
-                    var code = event.raw.replace(/\t/g,' ');
-                    try{
-                        var status = jsVerify(code, options, options.globals);
-                        if(status === false){
-                            jsVerify.errors.forEach(function(error){
-                                var line = error.line;
-                                reporter.warn(error.reason, styleLine + line, (line === 1 ? styleCol : 0) + error.character, self, error.evidence);
+                if (options !== undefined) {
+                    const styleLine = event.line - 1;
+                    const styleCol = event.col - 1;
+                    const code = event.raw.replace(/\t/g, ' ');
+                    try {
+                        const status = jsVerify(code, options);
+                        if (status === false) {
+                            jsVerify.errors.forEach(function(error) {
+                                const line = error.line;
+                                reporter.warn(
+                                    error.reason,
+                                    styleLine + line,
+                                    (line === 1 ? styleCol : 0) +
+                                        error.character,
+                                    self,
+                                    error.evidence
+                                );
                             });
                         }
-                    }
-                    catch(e){}
+                    } catch (e) {}
                 }
-
             }
         });
     }
-});
+};
