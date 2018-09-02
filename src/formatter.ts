@@ -1,3 +1,4 @@
+import { red } from 'colors/safe';
 import { EventEmitter } from 'events';
 import { sync } from 'glob';
 import { parse, ParsedPath, resolve } from 'path';
@@ -47,7 +48,7 @@ export class Formatter extends EventEmitter {
         const idx: number = Object.keys(this.mapFormatters).indexOf(format);
         if (idx === -1) {
             console.log(
-                'No supported formatter, supported formatters: %s'.red,
+                red('No supported formatter, supported formatters: %s'),
                 this.arrSupportedFormatters.join(', ')
             );
             process.exit(1);

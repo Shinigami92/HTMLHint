@@ -31,15 +31,15 @@ export class Reporter {
         this.ruleset = ruleset;
     }
 
-    public error(message: string, line: number, col: number, rule: Rule, raw): void {
+    public error(message: string, line: number, col: number, rule: Rule, raw: string): void {
         this.report('error', message, line, col, rule, raw);
     }
 
-    public warn(message: string, line: number, col: number, rule: Rule, raw): void {
+    public warn(message: string, line: number, col: number, rule: Rule, raw: string): void {
         this.report('warning', message, line, col, rule, raw);
     }
 
-    public info(message: string, line: number, col: number, rule: Rule, raw): void {
+    public info(message: string, line: number, col: number, rule: Rule, raw: string): void {
         this.report('info', message, line, col, rule, raw);
     }
 
@@ -49,7 +49,7 @@ export class Reporter {
         line: number,
         col: number,
         rule: Rule,
-        raw
+        raw: string
     ): void {
         const lines: string[] = this.lines;
         const brLen: number = this.brLen;

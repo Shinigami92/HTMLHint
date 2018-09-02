@@ -16,3 +16,6 @@ export interface RuleConfigMap {
 }
 
 export type RuleConfig = boolean;
+
+export type NewRuleSeverity = 'off' | 'error' | 'warn';
+export type NewRuleConfig = NewRuleSeverity | [NewRuleSeverity, { [key: string]: any } | undefined];

@@ -1,4 +1,4 @@
-import { HTMLParser, FixPosResult } from '../htmlparser';
+import { FixPosResult, HTMLParser } from '../htmlparser';
 import { Reporter } from '../reporter';
 import { Rule } from './html-rule';
 

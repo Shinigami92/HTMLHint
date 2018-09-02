@@ -2,7 +2,7 @@ import { grey, red, white } from 'colors/safe';
 import colors from 'colors/safe';
 import { HTMLParser } from './htmlparser';
 import { Reporter, ReporterMessage } from './reporter';
-import * as rules from './rules';
+import { RULES } from './rules';
 import { Rule, RuleConfigMap, RuleRegistry } from './rules/html-rule';
 
 function repeatStr(n: number, str: string = ' '): string {
@@ -34,7 +34,7 @@ export class HTMLHint {
     };
 
     constructor() {
-        Object.keys(rules).forEach((key: string) => this.addRule(rules[key]));
+        RULES.forEach(this.addRule);
     }
 
     public addRule(rule: Rule): void {

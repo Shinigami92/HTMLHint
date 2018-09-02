@@ -3,12 +3,32 @@ export interface FixPosResult {
     col: number;
 }
 
+export interface BlockData {
+    raw?: string;
+    pos?: number;
+    line?: number;
+    col?: number;
+    tagName?: string;
+    attrs?: Attribute[] | null;
+    close?: string;
+    content?: string;
+    long?: boolean;
+}
+
+export interface Attribute {
+    name: string;
+    value: string;
+    quote: string;
+    index: number;
+    raw: string;
+}
+
 export class HTMLParser {
     private _listeners = {};
     private _mapCdataTags: {
         [key: string]: boolean;
     } = this.makeMap('script,style');
-    private _arrBlocks = [];
+    private _arrBlocks: BlockData[] = [];
     private lastEvent = null;
 
     // parse html code
@@ -21,26 +41,28 @@ export class HTMLParser {
         const regAttr: RegExp = /\s*([^\s"'>/=\x00-\x0F\x7F\x80-\x9F]+)(?:\s*=\s*(?:(")([^"]*)"|(')([^']*)'|([^\s"'>]*)))?/g;
         const regLine: RegExp = /\r?\n/g;
 
-        let match;
-        let matchIndex;
-        let lastIndex = 0;
-        let tagName;
-        let arrAttrs;
-        let tagCDATA;
-        let attrsCDATA;
-        let arrCDATA;
-        let lastCDATAIndex = 0;
-        let text;
+        let match: RegExpExecArray | null;
+        let matchIndex: number;
+        let lastIndex: number = 0;
+        let tagName: string;
+        let arrAttrs: Attribute[];
+        let tagCDATA: string | null;
+        let attrsCDATA: Attribute[] | null;
+        let arrCDATA: string[] | null;
+        let lastCDATAIndex: number = 0;
+        let text: string;
         let lastLineIndex: number = 0;
         let line: number = 1;
-        const arrBlocks = this._arrBlocks;
+        const arrBlocks: BlockData[] = this._arrBlocks;
 
         // Memory block
-        const saveBlock = (type: string, raw, pos: number, data) => {
+        const saveBlock: (type: string, raw: string, pos: number, data?: BlockData) => void = (
+            type: string,
+            raw: string,
+            pos: number,
+            data: BlockData = {}
+        ): void => {
             const col: number = pos - lastLineIndex + 1;
-            if (data === undefined) {
-                data = {};
-            }
             data.raw = raw;
             data.pos = pos;
             data.line = line;
@@ -83,9 +105,7 @@ export class HTMLParser {
                 }
                 if (!tagCDATA) {
                     // End of label
-                    saveBlock('tagend', match[0], matchIndex, {
-                        tagName: tagName
-                    });
+                    saveBlock('tagend', match[0], matchIndex, { tagName });
                     continue;
                 }
             }
@@ -96,17 +116,17 @@ export class HTMLParser {
                 if ((tagName = match[4])) {
                     // Label start
                     arrAttrs = [];
-                    const attrs = match[5];
-                    let attrMatch;
-                    let attrMatchCount = 0;
+                    const attrs: string = match[5];
+                    let attrMatch: RegExpExecArray | null;
+                    let attrMatchCount: number = 0;
                     while ((attrMatch = regAttr.exec(attrs))) {
-                        const name = attrMatch[1];
-                        const quote = attrMatch[2]
+                        const name: string = attrMatch[1];
+                        const quote: string = attrMatch[2]
                             ? attrMatch[2]
                             : attrMatch[4]
                                 ? attrMatch[4]
                                 : '';
-                        const value = attrMatch[3]
+                        const value: string = attrMatch[3]
                             ? attrMatch[3]
                             : attrMatch[5]
                                 ? attrMatch[5]
@@ -162,7 +182,7 @@ export class HTMLParser {
     }
 
     // add event
-    public addListener(types, listener): void {
+    public addListener(types: string, listener): void {
         const _listeners = this._listeners;
         const arrTypes: string[] = types.split(/[,\s]/);
         let type: string;
@@ -176,7 +196,7 @@ export class HTMLParser {
     }
 
     // remove event
-    public removeListener(type, listener): void {
+    public removeListener(type: string, listener): void {
         const listenersType = this._listeners[type];
         if (listenersType !== undefined) {
             for (let i: number = 0, l: number = listenersType.length; i < l; i++) {
