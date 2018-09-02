@@ -13,12 +13,9 @@ import { URL } from 'url';
 
 import formatter, { Formatter } from './formatter';
 import { HTMLHint } from './htmlhint';
+import { ObjectMap } from './htmlparser';
 import { ReporterMessage } from './reporter';
 import { Rule, RuleConfigMap, RuleRegistry } from './rules/html-rule';
-
-interface ObjectMap<T> {
-    [key: string]: T;
-}
 
 function map(val: string): ObjectMap<string | boolean> {
     const objMap: ObjectMap<string | boolean> = {};

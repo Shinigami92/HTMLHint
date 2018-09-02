@@ -1,18 +1,18 @@
-import { HTMLParser } from '../htmlparser';
+import { Attribute, HTMLParser } from '../htmlparser';
 import { Reporter } from '../reporter';
 import { Rule, RuleConfig } from './html-rule';
 
 export const hrefAbsOrRelRule: Rule = {
     id: 'href-abs-or-rel',
     description: 'An href attribute must be either absolute or relative.',
-    init(parser: HTMLParser, reporter: Reporter, options: RuleConfig): void {
+    init(parser: HTMLParser, reporter: Reporter, options?: RuleConfig): void {
         const self: Rule = this;
 
         const hrefMode: 'absolute' | 'relative' = options === 'abs' ? 'absolute' : 'relative';
 
         parser.addListener('tagstart', (event) => {
-            const attrs = event.attrs;
-            let attr;
+            const attrs: Attribute[] = event.attrs;
+            let attr: Attribute;
             const col: number = event.col + event.tagName.length + 1;
 
             for (let i: number = 0, l: number = attrs.length; i < l; i++) {

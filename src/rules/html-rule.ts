@@ -4,7 +4,7 @@ import { Reporter } from '../reporter';
 export interface Rule {
     id: string;
     description: string;
-    init: (parser: HTMLParser, reporter: Reporter, options: RuleConfig) => void;
+    init: (parser: HTMLParser, reporter: Reporter, options?: RuleConfig | any) => void;
 }
 
 export interface RuleRegistry {

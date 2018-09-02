@@ -1,4 +1,4 @@
-import { HTMLParser } from '../htmlparser';
+import { Attribute, HTMLParser, ObjectMap } from '../htmlparser';
 import { Reporter } from '../reporter';
 import { Rule } from './html-rule';
 
@@ -8,13 +8,13 @@ export const attrNoDuplicationRule: Rule = {
     init(parser: HTMLParser, reporter: Reporter): void {
         const self: Rule = this;
         parser.addListener('tagstart', (event) => {
-            const attrs = event.attrs;
-            let attr;
-            let attrName;
+            const attrs: Attribute[] = event.attrs;
+            let attr: Attribute;
+            let attrName: string;
             const col: number = event.col + event.tagName.length + 1;
 
-            const mapAttrName = {};
-            for (let i = 0, l = attrs.length; i < l; i++) {
+            const mapAttrName: ObjectMap<true | undefined> = {};
+            for (let i: number = 0, l: number = attrs.length; i < l; i++) {
                 attr = attrs[i];
                 attrName = attr.name;
                 if (mapAttrName[attrName] === true) {

@@ -7,7 +7,7 @@ export const doctypeFirstRule: Rule = {
     description: 'Doctype must be declared first.',
     init(parser: HTMLParser, reporter: Reporter): void {
         const self: Rule = this;
-        const allEvent = (event) => {
+        const allEvent = (event): void => {
             if (event.type === 'start' || (event.type === 'text' && /^\s*$/.test(event.raw))) {
                 return;
             }

@@ -1,13 +1,24 @@
-import { HTMLParser } from '../htmlparser';
+import { Attribute, HTMLParser } from '../htmlparser';
 import { Reporter } from '../reporter';
-import { Rule, RuleConfig } from './html-rule';
+import { Rule } from './html-rule';
+
+interface Mode {
+    regId: RegExp;
+    message: string;
+}
+
+interface Modes {
+    underline: Mode;
+    dash: Mode;
+    hump: Mode;
+}
 
 export const idClassValueRule: Rule = {
     id: 'id-class-value',
     description: 'The id and class attribute values must meet the specified rules.',
-    init(parser: HTMLParser, reporter: Reporter, options: RuleConfig): void {
+    init(parser: HTMLParser, reporter: Reporter, options?: 'underline' | 'dash' | 'hump'): void {
         const self: Rule = this;
-        const arrRules = {
+        const arrRules: Modes = {
             underline: {
                 regId: /^[a-z\d]+(_[a-z\d]+)*$/,
                 message:
@@ -23,18 +34,18 @@ export const idClassValueRule: Rule = {
                 message: 'The id and class attribute values must meet the camelCase style.'
             }
         };
-        let rule;
+        let rule: Mode | undefined;
         if (typeof options === 'string') {
             rule = arrRules[options];
         } else {
             rule = options;
         }
         if (rule && rule.regId) {
-            const regId = rule.regId;
-            const message = rule.message;
+            const regId: RegExp = rule.regId;
+            const message: string = rule.message;
             parser.addListener('tagstart', (event) => {
-                const attrs = event.attrs;
-                let attr;
+                const attrs: Attribute[] = event.attrs;
+                let attr: Attribute;
                 const col: number = event.col + event.tagName.length + 1;
                 for (let i: number = 0, l1: number = attrs.length; i < l1; i++) {
                     attr = attrs[i];
@@ -44,8 +55,8 @@ export const idClassValueRule: Rule = {
                         }
                     }
                     if (attr.name.toLowerCase() === 'class') {
-                        const arrClass = attr.value.split(/\s+/g);
-                        let classValue;
+                        const arrClass: string[] = attr.value.split(/\s+/g);
+                        let classValue: string;
                         for (let j: number = 0, l2: number = arrClass.length; j < l2; j++) {
                             classValue = arrClass[j];
                             if (classValue && regId.test(classValue) === false) {

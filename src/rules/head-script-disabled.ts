@@ -1,4 +1,4 @@
-import { HTMLParser } from '../htmlparser';
+import { HTMLParser, ObjectMap } from '../htmlparser';
 import { Reporter } from '../reporter';
 import { Rule } from './html-rule';
 
@@ -10,8 +10,8 @@ export const headScriptDisabledRule: Rule = {
         const reScript: RegExp = /^(text\/javascript|application\/javascript)$/i;
         let isInHead: boolean = false;
         function onTagStart(event): void {
-            const mapAttrs = parser.getMapAttrs(event.attrs);
-            const type = mapAttrs.type;
+            const mapAttrs: ObjectMap<string> = parser.getMapAttrs(event.attrs);
+            const type: string = mapAttrs.type;
             const tagName: string = event.tagName.toLowerCase();
             if (tagName === 'head') {
                 isInHead = true;

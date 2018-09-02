@@ -1,4 +1,4 @@
-import { HTMLParser } from '../htmlparser';
+import { HTMLParser, ObjectMap } from '../htmlparser';
 import { Reporter } from '../reporter';
 import { Rule } from './html-rule';
 
@@ -10,7 +10,7 @@ export const altRequireRule: Rule = {
         const self: Rule = this;
         parser.addListener('tagstart', (event) => {
             const tagName: string = event.tagName.toLowerCase();
-            const mapAttrs = parser.getMapAttrs(event.attrs);
+            const mapAttrs: ObjectMap<string> = parser.getMapAttrs(event.attrs);
             const col: number = event.col + tagName.length + 1;
             if (tagName === 'img' && !('alt' in mapAttrs)) {
                 reporter.warn(

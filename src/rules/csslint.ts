@@ -18,8 +18,8 @@ export const csslintRule: Rule = {
                 }
 
                 if (options !== undefined) {
-                    const styleLine = event.line - 1;
-                    const styleCol = event.col - 1;
+                    const styleLine: number = event.line - 1;
+                    const styleCol: number = event.col - 1;
                     try {
                         const messages = cssVerify(event.raw, options).messages;
                         messages.forEach((error) => {

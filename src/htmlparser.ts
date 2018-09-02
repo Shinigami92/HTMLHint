@@ -13,6 +13,8 @@ export interface BlockData {
     close?: string;
     content?: string;
     long?: boolean;
+    type?: string;
+    lastEvent?: BlockData;
 }
 
 export interface Attribute {
@@ -23,19 +25,19 @@ export interface Attribute {
     raw: string;
 }
 
+export interface ObjectMap<T> {
+    [key: string]: T;
+}
+
 export class HTMLParser {
     private _listeners = {};
-    private _mapCdataTags: {
-        [key: string]: boolean;
-    } = this.makeMap('script,style');
+    private _mapCdataTags: ObjectMap<boolean | undefined> = this.makeMap('script,style');
     private _arrBlocks: BlockData[] = [];
-    private lastEvent = null;
+    private lastEvent: BlockData | null = null;
 
     // parse html code
     public parse(html: string): void {
-        const mapCdataTags: {
-            [key: string]: boolean;
-        } = this._mapCdataTags;
+        const mapCdataTags: ObjectMap<boolean | undefined> = this._mapCdataTags;
 
         const regTag: RegExp = /<(?:\/([^\s>]+)\s*|!--([\s\S]*?)--|!([^>]*?)|([\w\-:]+)((?:\s+[^\s"'>/=\x00-\x0F\x7F\x80-\x9F]+(?:\s*=\s*(?:"[^"]*"|'[^']*'|[^\s"'>]*))?)*?)\s*(\/?))>/g;
         const regAttr: RegExp = /\s*([^\s"'>/=\x00-\x0F\x7F\x80-\x9F]+)(?:\s*=\s*(?:(")([^"]*)"|(')([^']*)'|([^\s"'>]*)))?/g;
@@ -209,7 +211,14 @@ export class HTMLParser {
     }
 
     //fix pos if event.raw have \n
-    public fixPos(event, index: number): FixPosResult {
+    public fixPos(
+        event: {
+            raw: string;
+            line: number;
+            col: number;
+        },
+        index: number
+    ): FixPosResult {
         const text: string = event.raw.substr(0, index);
         const arrLines: string[] = text.split(/\r?\n/);
         const lineCount: number = arrLines.length - 1;
@@ -225,9 +234,9 @@ export class HTMLParser {
     }
 
     // covert array type of attrs to map
-    public getMapAttrs(arrAttrs) {
-        const mapAttrs = {};
-        let attr;
+    public getMapAttrs(arrAttrs: Attribute[]): ObjectMap<string> {
+        const mapAttrs: ObjectMap<string> = {};
+        let attr: Attribute;
         for (let i: number = 0, l: number = arrAttrs.length; i < l; i++) {
             attr = arrAttrs[i];
             mapAttrs[attr.name] = attr.value;
@@ -235,12 +244,8 @@ export class HTMLParser {
         return mapAttrs;
     }
 
-    public makeMap(
-        str: string
-    ): {
-        [key: string]: boolean | undefined;
-    } {
-        const obj: { [key: string]: boolean } = {};
+    public makeMap(str: string): ObjectMap<boolean | undefined> {
+        const obj: ObjectMap<boolean | undefined> = {};
         const items: string[] = str.split(',');
         for (let i: number = 0; i < items.length; i++) {
             obj[items[i]] = true;
@@ -249,10 +254,7 @@ export class HTMLParser {
     }
 
     // fire event
-    private fire(type: string, data): void {
-        if (data === undefined) {
-            data = {};
-        }
+    private fire(type: string, data: BlockData = {}): void {
         data.type = type;
         let listeners = [];
         const listenersType = this._listeners[type];
@@ -263,7 +265,7 @@ export class HTMLParser {
         if (listenersAll !== undefined) {
             listeners = listeners.concat(listenersAll);
         }
-        const lastEvent = this.lastEvent;
+        const lastEvent: BlockData | null = this.lastEvent;
         if (lastEvent !== null) {
             delete lastEvent['lastEvent'];
             data.lastEvent = lastEvent;

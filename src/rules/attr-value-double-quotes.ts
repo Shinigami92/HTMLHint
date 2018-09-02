@@ -1,4 +1,4 @@
-import { HTMLParser } from '../htmlparser';
+import { Attribute, HTMLParser } from '../htmlparser';
 import { Reporter } from '../reporter';
 import { Rule } from './html-rule';
 
@@ -8,8 +8,8 @@ export const attrValueDoubleQuotes: Rule = {
     init(parser: HTMLParser, reporter: Reporter): void {
         const self: Rule = this;
         parser.addListener('tagstart', (event) => {
-            const attrs = event.attrs;
-            let attr;
+            const attrs: Attribute[] = event.attrs;
+            let attr: Attribute;
             const col: number = event.col + event.tagName.length + 1;
             for (let i: number = 0, l: number = attrs.length; i < l; i++) {
                 attr = attrs[i];
