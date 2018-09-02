@@ -91,7 +91,7 @@ export class HTMLHint {
     public format(
         arrMessages: ReporterMessage[],
         options: FormatOption = {
-            colors: false,
+            colors: true,
             indent: 0
         }
     ): string[] {
