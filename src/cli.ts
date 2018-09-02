@@ -11,15 +11,19 @@ import { get, Response } from 'request';
 import stripJsonComments from 'strip-json-comments';
 import { URL } from 'url';
 
-import formatter from './formatter';
+import formatter, { Formatter } from './formatter';
 import { HTMLHint } from './htmlhint';
 import { ReporterMessage } from './reporter';
 import { Rule, RuleConfigMap, RuleRegistry } from './rules/html-rule';
 
-function map(val) {
-    const objMap = {};
-    val.split(',').forEach((item) => {
-        const arrItem = item.split(/\s*=\s*/);
+interface ObjectMap<T> {
+    [key: string]: T;
+}
+
+function map(val: string): ObjectMap<string | boolean> {
+    const objMap: ObjectMap<string | boolean> = {};
+    val.split(',').forEach((item: string) => {
+        const arrItem: string[] = item.split(/\s*=\s*/);
         objMap[arrItem[0]] = arrItem[1] ? arrItem[1] : true;
     });
     return objMap;
@@ -65,6 +69,7 @@ program
     .option('--warn', 'Warn only, exit with 0')
     .parse(process.argv);
 
+// program.list is {true | undefined}
 if (program.list) {
     listRules();
     process.exit(0);
@@ -76,15 +81,20 @@ if (arrTargets.length === 0) {
 }
 
 // init formatter
+// program.nocolor is {true | undefined}
 formatter.init(HTMLHint, {
     nocolor: program.nocolor
 });
 
+// program.format is {string | undefined}
 const format: string = program.format || 'default';
 if (format) {
     formatter.setFormat(format);
 }
 
+// program.rulesdir is {string | undefined}
+// program.rules is {string | undefined}
+// program.ignore is {string | undefined}
 hintTargets(arrTargets, {
     rulesdir: program.rulesdir,
     ruleset: program.rules,
@@ -106,17 +116,24 @@ function listRules(): void {
     }
 }
 
-function hintTargets(arrTargets: string[], options): void {
-    let arrAllMessages = [];
+interface HintTargetsOption {
+    rulesdir?: string;
+    ruleset?: string;
+    formatter: Formatter;
+    ignore?: string;
+}
+
+function hintTargets(arrTargets: string[], options: HintTargetsOption): void {
+    let arrAllMessages: TargetMessage[] = [];
     let allFileCount: number = 0;
     let allHintFileCount: number = 0;
     let allHintCount: number = 0;
     const startTime: number = new Date().getTime();
 
-    const formatter = options.formatter;
+    const formatter: Formatter = options.formatter;
 
     // load custom rules
-    const rulesdir = options.rulesdir;
+    const rulesdir: string | undefined = options.rulesdir;
     if (rulesdir) {
         loadCustomRules(rulesdir);
     }
@@ -124,10 +141,10 @@ function hintTargets(arrTargets: string[], options): void {
     // start hint
     formatter.emit('start');
 
-    const arrTasks = [];
-    arrTargets.forEach((target) => {
-        arrTasks.push((next) => {
-            hintAllFiles(target, options, (result) => {
+    const arrTasks: Array<(next: () => void) => void> = [];
+    arrTargets.forEach((target: string) => {
+        arrTasks.push((next: () => void) => {
+            hintAllFiles(target, options, (result: HintResult) => {
                 allFileCount += result.targetFileCount;
                 allHintFileCount += result.targetHintFileCount;
                 allHintCount += result.targetHintCount;
@@ -146,12 +163,13 @@ function hintTargets(arrTargets: string[], options): void {
             allHintCount,
             time: spendTime
         });
+        // program.warn is {true | undefined}
         process.exit(!program.warn && allHintCount > 0 ? 1 : 0);
     });
 }
 
 // load custom rles
-function loadCustomRules(rulesdir): void {
+function loadCustomRules(rulesdir: string): void {
     rulesdir = rulesdir.replace(/\\/g, '/');
     if (existsSync(rulesdir)) {
         if (statSync(rulesdir).isDirectory()) {
@@ -171,6 +189,7 @@ function loadCustomRules(rulesdir): void {
 }
 
 // load rule
+// TODO: Will this method be needed in the future? Maybe for legacy support?
 function loadRule(filepath: string): void {
     filepath = resolve(filepath);
     try {
@@ -181,22 +200,40 @@ function loadRule(filepath: string): void {
     }
 }
 
+interface TargetMessage {
+    file: string;
+    messages: ReporterMessage[];
+    time: number;
+}
+
+interface HintResult {
+    targetFileCount: number;
+    targetHintFileCount: number;
+    targetHintCount: number;
+    arrTargetMessages: TargetMessage[];
+}
+
 // hint all files
-function hintAllFiles(target, options, onFinised): void {
-    const globInfo = getGlobInfo(target);
+function hintAllFiles(
+    target: string,
+    options: HintTargetsOption,
+    onFinised: (result: HintResult) => void
+): void {
+    const globInfo: GlobInfo = getGlobInfo(target);
     globInfo.ignore = options.ignore;
 
-    const formatter = options.formatter;
+    const formatter: Formatter = options.formatter;
 
     // hint result
     let targetFileCount: number = 0;
     let targetHintFileCount: number = 0;
     let targetHintCount: number = 0;
-    const arrTargetMessages = [];
+    const arrTargetMessages: TargetMessage[] = [];
 
     // init ruleset
-    let ruleset: RuleConfigMap | undefined = options.ruleset;
+    let ruleset: RuleConfigMap | string | undefined = options.ruleset;
     if (ruleset === undefined) {
+        // program.config is {string | undefined}
         ruleset = getConfig(program.config, globInfo.base, formatter);
     }
 
@@ -224,6 +261,7 @@ function hintAllFiles(target, options, onFinised): void {
                 targetFileCount++;
                 setImmediate(next);
             }
+            // TODO: ruleset is not well checked if it is {string | RuleConfigMap | undefined}
             if (filepath === 'stdin') {
                 hintStdin(ruleset, hintNext);
             } else if (/^https?:\/\//.test(filepath)) {
@@ -268,14 +306,22 @@ function hintAllFiles(target, options, onFinised): void {
     }
 }
 
+interface GlobInfo {
+    base: string;
+    pattern: string;
+    ignore?: string;
+}
+
 // split target to base & glob
-function getGlobInfo(target) {
+function getGlobInfo(target: string): GlobInfo {
     // fix windows sep
     target = target.replace(/\\/g, '/');
     const globInfo: parseGlob.Result = parseGlob(target);
     let base: string = resolve(globInfo.base);
     base += /\/$/.test(base) ? '' : '/';
     let pattern: string = globInfo.glob;
+    // TODO: globPath can be -> const { basename } = globInfo.path;
+    // There is no exported interface for parseGlob.Result.path
     const globPath = globInfo.path;
     const defaultGlob: '*.{htm,html}' = '*.{htm,html}';
     if (globInfo.is.glob === true) {
@@ -297,7 +343,11 @@ function getGlobInfo(target) {
 }
 
 // search and load config
-function getConfig(configPath, base: string, formatter): RuleConfigMap | undefined {
+function getConfig(
+    configPath: string | undefined,
+    base: string,
+    formatter: Formatter
+): RuleConfigMap | undefined {
     if (configPath === undefined && existsSync(base)) {
         // find default config file in parent directory
         if (statSync(base).isDirectory() === false) {
@@ -313,6 +363,7 @@ function getConfig(configPath, base: string, formatter): RuleConfigMap | undefin
         }
     }
 
+    // TODO: check configPath is not undefined
     if (existsSync(configPath)) {
         const config: string = readFileSync(configPath, 'utf-8');
         let ruleset: RuleConfigMap | undefined;
@@ -330,13 +381,17 @@ function getConfig(configPath, base: string, formatter): RuleConfigMap | undefin
 }
 
 // walk path
-function walkPath(globInfo, callback, onFinish) {
+function walkPath(
+    globInfo: GlobInfo,
+    callback: (filepath: string) => void,
+    onFinish: () => void
+): void {
     let base: string = globInfo.base;
     const pattern: string = globInfo.pattern;
-    const ignore = globInfo.ignore;
-    const arrIgnores = ['**/node_modules/**'];
+    const ignore: string | undefined = globInfo.ignore;
+    const arrIgnores: string[] = ['**/node_modules/**'];
     if (ignore) {
-        ignore.split(',').forEach((pattern) => {
+        ignore.split(',').forEach((pattern: string) => {
             arrIgnores.push(pattern);
         });
     }
@@ -354,6 +409,8 @@ function walkPath(globInfo, callback, onFinish) {
             onFinish();
         }
     );
+    // TODO: walk is of type void, something is wrong here
+    // Maybe that worked with an old version of glob
     walk.on('match', (file) => {
         base = base.replace(/^.\//, '');
         callback(base + file);
