@@ -35,7 +35,7 @@ export class HTMLParser {
         let line: number = 1;
         const arrBlocks = this._arrBlocks;
 
-        //存储区块
+        // Memory block
         const saveBlock = (type: string, raw, pos: number, data) => {
             const col: number = pos - lastLineIndex + 1;
             if (data === undefined) {
@@ -58,12 +58,12 @@ export class HTMLParser {
         while ((match = regTag.exec(html))) {
             matchIndex = match.index;
             if (matchIndex > lastIndex) {
-                //保存前面的文本或者CDATA
+                // Save the previous text or CDATA
                 text = html.substring(lastIndex, matchIndex);
                 if (tagCDATA) {
                     arrCDATA.push(text);
                 } else {
-                    //文本
+                    // text
                     saveBlock('text', text, lastIndex);
                 }
             }
@@ -71,7 +71,7 @@ export class HTMLParser {
 
             if ((tagName = match[1])) {
                 if (tagCDATA && tagName === tagCDATA) {
-                    //结束标签前输出CDATA
+                    // Output CDATA before closing the label
                     text = arrCDATA.join('');
                     saveBlock('cdata', text, lastCDATAIndex, {
                         tagName: tagCDATA,
@@ -82,7 +82,7 @@ export class HTMLParser {
                     arrCDATA = null;
                 }
                 if (!tagCDATA) {
-                    //标签结束
+                    // End of label
                     saveBlock('tagend', match[0], matchIndex, {
                         tagName: tagName
                     });
@@ -94,7 +94,7 @@ export class HTMLParser {
                 arrCDATA.push(match[0]);
             } else {
                 if ((tagName = match[4])) {
-                    //标签开始
+                    // Label start
                     arrAttrs = [];
                     const attrs = match[5];
                     let attrMatch;
@@ -135,11 +135,11 @@ export class HTMLParser {
                             lastCDATAIndex = lastIndex;
                         }
                     } else {
-                        //如果出现漏匹配，则把当前内容匹配为text
+                        // If a miss match occurs, the current content is matched to text
                         saveBlock('text', match[0], matchIndex);
                     }
                 } else if (match[2] || match[3]) {
-                    //注释标签
+                    // Comment tag
                     saveBlock('comment', match[0], matchIndex, {
                         content: match[2] || match[3],
                         long: match[2] ? true : false
@@ -149,7 +149,7 @@ export class HTMLParser {
         }
 
         if (html.length > lastIndex) {
-            //结尾文本
+            // End text
             text = html.substring(lastIndex, html.length);
             saveBlock('text', text, lastIndex);
         }
